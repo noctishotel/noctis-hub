@@ -45,7 +45,7 @@
 
 /* ─── RESET ─────────────────────────────────────────────────────────── */
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
-html { font-size: 17px; }
+html { font-size: 17px; overscroll-behavior: none; }
 body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--ink); min-height:100vh; overflow-x:hidden; }
 button { font-family:'DM Sans',sans-serif; cursor:pointer; }
 input, select, textarea { font-family:'DM Sans',sans-serif; }
@@ -301,6 +301,10 @@ td { padding:13px 16px; font-size: 0.941rem; color:var(--ink); vertical-align:mi
 .modal-ov { position:fixed; inset:0; background:rgba(26,18,8,0.55); z-index:700; display:flex; align-items:center; justify-content:center; padding:16px; opacity:0; pointer-events:none; transition:opacity 0.25s; }
 .modal-ov.open { opacity:1; pointer-events:all; }
 .modal-box { background:white; border-radius:20px; width:100%; max-width:520px; max-height:92vh; overflow-y:auto; box-shadow:var(--shadow-lg); transform:translateY(18px); transition:transform 0.25s; }
+@media (max-width: 600px) {
+  .modal-box { border-radius:16px 16px 0 0; max-width:100%; max-height:90vh; width:100%; margin-top:auto; }
+  .modal-ov { align-items:flex-end; padding:0; }
+}
 .modal-ov.open .modal-box { transform:translateY(0); }
 .modal-head { padding:24px 28px 18px; border-bottom:1px solid var(--cream-dark); display:flex; align-items:center; justify-content:space-between; }
 .modal-title { font-family:'Cormorant Garamond',serif; font-size: 1.412rem; font-weight:700; }
@@ -346,7 +350,7 @@ td { padding:13px 16px; font-size: 0.941rem; color:var(--ink); vertical-align:mi
 
 /* ─── RESPONSIVE ────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
-  html { font-size: 17px; }
+  html { font-size: 17px; overscroll-behavior: none; }
   .sidebar { transform:translateX(-100%); }
   .sidebar.mobile-open { transform:translateX(0); box-shadow:var(--shadow-lg); }
   .main { margin-left:0; padding:16px 14px 80px; }
@@ -382,6 +386,14 @@ td { padding:13px 16px; font-size: 0.941rem; color:var(--ink); vertical-align:mi
   .user-name-top { display:block; }
   .user-role-top { display:block; }
 }
+@media (max-width: 768px) {
+  .topbar { padding: 0 12px; gap: 8px; }
+  .topbar-logo { font-size: 1.176rem; }
+  .btn-logout { font-size: 0.706rem; padding: 6px 10px; min-width: auto; }
+  .user-name-top, .user-role-top { display: none; }
+  .user-avatar { width: 32px; height: 32px; font-size: 0.824rem; }
+  .notif-bell-btn { padding: 6px; }
+}
 /* Sidebar overlay for mobile */
 .sidebar-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:99; }
 .sidebar-overlay.open { display:block; }
@@ -398,7 +410,11 @@ td { padding:13px 16px; font-size: 0.941rem; color:var(--ink); vertical-align:mi
     <label class="form-label">Correo electrónico</label>
     <input class="form-input" id="l-email" type="email" placeholder="tu@noctishotel.es" onkeydown="if(event.key==='Enter')doLogin()">
     <label class="form-label">Contraseña</label>
-    <input class="form-input" id="l-pwd" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()" style="margin-bottom:20px">
+    <input class="form-input" id="l-pwd" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()" style="margin-bottom:12px">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+      <input type="checkbox" id="remember-me" checked style="width:16px;height:16px;accent-color:var(--forest);cursor:pointer">
+      <label for="remember-me" style="font-size:0.824rem;color:var(--ink-light);cursor:pointer">Mantener sesión iniciada</label>
+    </div>
     <button class="btn-login" onclick="doLogin()">Acceder</button>
     <div class="login-error" id="login-err">Email o contraseña incorrectos</div>
 
@@ -512,6 +528,7 @@ td { padding:13px 16px; font-size: 0.941rem; color:var(--ink); vertical-align:mi
           <div class="page-subtitle" id="chk-date-label">—</div>
         </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-outline" id="btn-whatsapp-summary" onclick="sendWhatsAppSummary()" style="display:none;border-color:#25D366;color:#25D366"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#25D366" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg> Resumen Turno</button>
           <select class="form-select" id="chk-dept-sel" onchange="renderChecklists()" style="margin-bottom:0;min-width:170px"></select>
           <button class="btn btn-green" id="btn-new-tpl" onclick="openNewTemplate()" style="display:none">+ Nueva Plantilla</button>
         </div>
@@ -858,9 +875,7 @@ td { padding:13px 16px; font-size: 0.941rem; color:var(--ink); vertical-align:mi
       <textarea class="form-textarea" id="af-note" placeholder="Ej: Llamar a Jordan para que venga mañana a las 10h..."></textarea>
       <label class="form-label">Fecha y Hora</label>
       <input class="form-input" id="af-time" type="datetime-local">
-      <label class="form-label">Prioridad</label>
-      <select class="form-select" id="af-prio"><option value="NORMAL">Normal</option><option value="URGENTE">Urgente</option></select>
-    </div>
+      
     <div class="modal-foot">
       <button class="btn btn-outline" onclick="closeModal('modal-alarm')">Cancelar</button>
       <button class="btn btn-green" onclick="saveAlarm()">Crear Alarma</button>
@@ -1008,6 +1023,8 @@ async function loadAllData() {
         const colorMap={color_forest:'forest',color_topbar:'topbar',color_gold:'gold',color_red:'red',color_cream:'cream','color_forest-light':'forest-light'};
         cfg.forEach(row => {
           if(row.key==='font_family'){ applyFont(row.value); }
+          if(row.key==='hotel_name' && row.value){ const el=document.getElementById('cfg-hotel'); if(el) el.value=row.value; }
+          if(row.key==='app_name' && row.value){ const el=document.getElementById('cfg-appname'); if(el) el.value=row.value; }
           if(row.key==='font_size'){ applyFontSize(row.value); const el=document.getElementById('cfg-fontsize');if(el)el.value=row.value; }
           if(colorMap[row.key]) {
             applyColor(colorMap[row.key], row.value);
@@ -1047,7 +1064,8 @@ function doLogin(userObj){
     }
   }
   cu = u;
-  try { localStorage.setItem('noctis_session', JSON.stringify({email:u.email, pwd:u.pwd})); } catch(e) {}
+  const rememberMe = document.getElementById('remember-me')?.checked !== false;
+  try { if(rememberMe) localStorage.setItem('noctis_session', JSON.stringify({email:u.email, pwd:u.pwd})); } catch(e) {}
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
   initApp();
@@ -1081,18 +1099,27 @@ window.addEventListener('DOMContentLoaded', async () => {
 function initApp(){
   const isS = cu.role==='SUPER_ADMIN';
   const isA = cu.role==='ADMIN';
+  const isE = cu.role==='EMPLOYEE';
   document.getElementById('top-name').textContent = cu.name;
   document.getElementById('top-role').textContent = roleLabel(cu.role);
   document.getElementById('top-avatar').textContent = cu.name[0];
 
-  const adminItems = ['nsec-admin','nav-admin','nav-hotels','nav-archive'];
-  adminItems.forEach(id => {
+  // SuperAdmin only items
+  ['nsec-admin','nav-admin','nav-hotels','nav-archive'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = isS ? '' : 'none';
+  });
+  // Admin + SuperAdmin items
+  ['nav-reports','nav-team'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = (isS||isA) ? '' : 'none';
   });
 
   populateSelects();
   buildNotifications();
+  // Show WhatsApp summary button for admin+
+  const wabtn = document.getElementById('btn-whatsapp-summary');
+  if(wabtn) wabtn.style.display = (isS||isA) ? '' : 'none';
   navTo('dashboard');
 }
 
@@ -1368,6 +1395,47 @@ async function toggleChk(ck){
   renderChecklists();
 }
 
+function sendWhatsAppSummary(){
+  const today=new Date().toISOString().slice(0,10);
+  const dateLabel=new Date().toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'});
+  const dept=cu.dept;
+
+  // Build summary
+  let msg = `*Noctis Hub — Resumen de Turno*\n`;
+  msg += `${dateLabel}\n`;
+  msg += `Responsable: ${cu.name} (${dept})\n\n`;
+
+  // Checklists
+  const myTpls = TEMPLATES.filter(t => t.dept===dept);
+  if(myTpls.length){
+    msg += `*Checklists:*\n`;
+    myTpls.forEach(t=>{
+      const done=t.items.filter((_,i)=>CHK[`${t.id}-${today}-${i}`]).length;
+      const pct=t.items.length?Math.round(done/t.items.length*100):0;
+      msg += `· ${t.name}: ${done}/${t.items.length} (${pct}%)\n`;
+    });
+    msg += '\n';
+  }
+
+  // Incidents
+  const deptInc=INCIDENTS.filter(i=>i.dept===dept);
+  const openInc=deptInc.filter(i=>i.status==='ABIERTA').length;
+  const inProcessInc=deptInc.filter(i=>i.status==='EN_PROCESO').length;
+  const resolvedInc=deptInc.filter(i=>i.status==='RESUELTA').length;
+  if(deptInc.length){
+    msg += `*Incidencias:*\n`;
+    msg += `· Abiertas: ${openInc} | En proceso: ${inProcessInc} | Resueltas: ${resolvedInc}\n`;
+    const critOpen=deptInc.filter(i=>i.prio==='CRITICA'&&i.status!=='RESUELTA');
+    if(critOpen.length) msg += `⚠ Críticas pendientes: ${critOpen.map(i=>i.title).join(', ')}\n`;
+    msg += '\n';
+  }
+
+  msg += `_Enviado desde Noctis Hub_`;
+
+  const encoded=encodeURIComponent(msg);
+  window.open(`https://wa.me/?text=${encoded}`,'_blank');
+}
+
 function saveArchiveSnapshot(){
   const today=new Date().toISOString().slice(0,10);
   ARCHIVE[today]=TEMPLATES.map(t=>({
@@ -1385,46 +1453,80 @@ function renderArchive(){
   const toDate=document.getElementById('arc-date-to')?document.getElementById('arc-date-to').value:'';
   const container=document.getElementById('archive-content');
   const isS=cu.role==='SUPER_ADMIN';
+  const isA=cu.role==='ADMIN';
 
-  const days=Object.keys(ARCHIVE).sort().reverse().filter(d=>{
-    if(fromDate&&d<fromDate)return false;
-    if(toDate&&d>toDate)return false;
+  // Load from Supabase checklist history
+  const today=new Date().toISOString().slice(0,10);
+
+  // Group CHK by date
+  const byDate={};
+  Object.entries(CHK).forEach(([key,val])=>{
+    const [tplId,date,idx]=key.split('-');
+    if(!byDate[date]) byDate[date]=[];
+    byDate[date].push({tplId,idx:parseInt(idx),user:val.user,time:val.time});
+  });
+
+  // Also include ARCHIVE snapshots
+  Object.entries(ARCHIVE).forEach(([date,entries])=>{
+    if(!byDate[date]) byDate[date]=[];
+  });
+
+  const allDates=Object.keys(byDate).sort().reverse().filter(d=>{
+    if(fromDate&&d<fromDate) return false;
+    if(toDate&&d>toDate) return false;
     return true;
   });
 
-  if(!days.length){container.innerHTML='<div class="empty"><div class="empty-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#2e4a1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg></div><div class="empty-text">Sin historial disponible aún</div><div class="empty-sub">Los checklists se guardan automáticamente cada día</div></div>';return;}
+  if(!allDates.length){
+    container.innerHTML=`<div class="empty"><div class="empty-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#2e4a1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg></div><div class="empty-text">Sin historial disponible</div><div class="empty-sub">Aquí aparecerán los checklists completados de días anteriores</div></div>`;
+    return;
+  }
 
-  container.innerHTML=days.map(d=>{
-    let entries=ARCHIVE[d];
-    if(!isS)entries=entries.filter(e=>e.dept===cu.dept);
-    if(deptSel!=='Todos')entries=entries.filter(e=>e.dept===deptSel);
-    if(!entries.length)return '';
-    const totalItems=entries.reduce((s,e)=>s+e.items.length,0);
-    const doneItems=entries.reduce((s,e)=>s+e.items.filter(i=>i.done).length,0);
-    const pct=totalItems?Math.round(doneItems/totalItems*100):0;
-    return `<div class="archive-day">
-      <div class="archive-day-header" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
-        <span><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#2e4a1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> ${new Date(d+'T12:00').toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</span>
-        <span class="badge ${pct===100?'badge-green':pct>50?'badge-amber':'badge-red'}">${doneItems}/${totalItems} completados · ${pct}%</span>
+  container.innerHTML=allDates.map(date=>{
+    const dateLabel=new Date(date+'T12:00:00').toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+    let tpls=TEMPLATES;
+    if(!isS) tpls=tpls.filter(t=>t.dept===cu.dept);
+    if(deptSel!=='Todos') tpls=tpls.filter(t=>t.dept===deptSel);
+
+    const tplRows=tpls.map(t=>{
+      const done=t.items.filter((_,i)=>CHK[`${t.id}-${date}-${i}`]).length;
+      const total=t.items.length;
+      const pct=total?Math.round(done/total*100):0;
+      const pctColor=pct===100?'var(--forest)':pct>0?'var(--amber)':'var(--red)';
+      // Who worked on this template that day
+      const workers=[...new Set(t.items.map((_,i)=>CHK[`${t.id}-${date}-${i}`]?.user).filter(Boolean))];
+      return `<tr>
+        <td><strong>${t.name}</strong><br><small style="color:var(--ink-muted)">${D_ICONS[t.dept]||''} ${t.dept} · ${t.shift}</small></td>
+        <td style="text-align:center;font-weight:700;color:${pctColor}">${done}/${total}</td>
+        <td style="text-align:center;font-weight:700;color:${pctColor}">${pct}%</td>
+        <td style="font-size:0.765rem;color:var(--ink-muted)">${workers.join(', ')||'—'}</td>
+      </tr>`;
+    }).join('');
+
+    if(!tplRows.trim()) return '';
+    const totalDone=tpls.reduce((s,t)=>s+t.items.filter((_,i)=>CHK[`${t.id}-${date}-${i}`]).length,0);
+    const totalAll=tpls.reduce((s,t)=>s+t.items.length,0);
+    const dayPct=totalAll?Math.round(totalDone/totalAll*100):0;
+    const dayColor=dayPct===100?'var(--forest)':dayPct>50?'var(--amber)':'var(--red)';
+
+    return `<div style="margin-bottom:20px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="font-weight:700;font-size:1rem;text-transform:capitalize">${dateLabel}</div>
+        <div style="font-weight:700;color:${dayColor};font-size:0.941rem">${dayPct}% completado</div>
       </div>
-      <div>
-        ${entries.map(e=>`<div class="archive-entry">
-          <div class="archive-entry-head">
-            <div><span class="archive-entry-title">${e.tplName}</span> <span style="font-size:12px;color:var(--ink-muted)">${e.dept} · ${e.shift}</span></div>
-            <span class="badge ${e.items.every(i=>i.done)?'badge-green':e.items.some(i=>i.done)?'badge-amber':'badge-gray'}">${e.items.filter(i=>i.done).length}/${e.items.length}</span>
-          </div>
-          <div class="archive-entry-items">
-            ${e.items.map(item=>`<div class="archive-chk-row">
-              <div class="archive-dot" style="background:${item.done?'var(--forest)':'var(--border)'}">${item.done?'✓':''}</div>
-              <span style="flex:1;font-size:13px;color:${item.done?'var(--ink)':'var(--ink-muted)'}">${item.text}</span>
-              ${item.done?`<span style="font-size:11px;color:var(--forest);white-space:nowrap">${item.user} · ${item.time}</span>`:''}
-            </div>`).join('')}
-          </div>
-        </div>`).join('')}
-      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:0.824rem">
+        <thead><tr style="background:var(--cream-dark)">
+          <th style="padding:8px;text-align:left">Plantilla</th>
+          <th style="padding:8px;text-align:center">Tareas</th>
+          <th style="padding:8px;text-align:center">%</th>
+          <th style="padding:8px;text-align:left">Realizado por</th>
+        </tr></thead>
+        <tbody>${tplRows}</tbody>
+      </table>
     </div>`;
   }).join('');
 }
+
 
 // ══════════════════════════════════════════════════════════════
 // INCIDENTS
@@ -1586,7 +1688,7 @@ async function saveAlarm(){
   const prio=document.getElementById('af-prio').value;
   const time=document.getElementById('af-time').value;
   if(!title){toast('✗ Escribe un título');return;}
-  const obj={title,note,prio,alarm_time:time,done:false,created_by:cu.id};
+  const obj={title,note,alarm_time:time,dept:cu.dept,done:false,created_by:cu.id};
   try{
     const[saved]=await SB.post('nh_alarms',obj);
     ALARMS.unshift({...obj,id:saved?saved.id:IDS.alarm++,time});
@@ -1898,10 +2000,14 @@ function applyColor(key, val){
 async function saveConfig(){
   const fontVal = document.getElementById('cfg-font')?.value || 'Inter,sans-serif';
   const fontSizeVal = document.getElementById('cfg-fontsize')?.value || '17';
+  const hotelNameVal = document.getElementById('cfg-hotel')?.value || '';
+  const appNameVal = document.getElementById('cfg-appname')?.value || 'Noctis Hub';
   const keys=['forest','topbar','gold','red','cream','forest-light'];
   const allUpdates = [
     {key:'font_family', value:fontVal},
     {key:'font_size', value:fontSizeVal},
+    {key:'hotel_name', value:hotelNameVal},
+    {key:'app_name', value:appNameVal},
     ...keys.map(k=>({key:'color_'+k, value:document.getElementById('cfg-'+k)?.value||''}))
   ];
   try{
@@ -1980,10 +2086,19 @@ function downloadReport(type,format){
       filename=`noctis-incidencias-${from}.csv`;
     } else if(type==='empleados'){
       const rows=USERS.filter(u=>u.active).map(u=>{
-        const myInc=INCIDENTS.filter(i=>i.by===u.id).length;
-        return[u.name,u.email,u.dept,roleLabel(u.role),myInc];
+        const incCreadas=INCIDENTS.filter(i=>i.by===u.id).length;
+        const incResueltas=INCIDENTS.filter(i=>i.by===u.id&&i.status==='RESUELTA').length;
+        // Checklist items completed by this user today
+        const chkDone=Object.values(CHK).filter(c=>c.user===u.name).length;
+        // Total possible checklist items for their dept
+        const deptTpls=TEMPLATES.filter(t=>t.dept===u.dept);
+        const totalChkItems=deptTpls.reduce((s,t)=>s+t.items.length,0);
+        const chkPct=totalChkItems>0?Math.round(chkDone/totalChkItems*100):0;
+        // Avg resolution time for incidents (if has history with status change)
+        const resolved=INCIDENTS.filter(i=>i.by===u.id&&i.status==='RESUELTA'&&i.history&&i.history.length>1);
+        return[u.name,u.dept,roleLabel(u.role),incCreadas,incResueltas,`${chkDone}/${totalChkItems}`,`${chkPct}%`];
       });
-      content=buildCSV(rows,['Nombre','Email','Departamento','Rol','Incidencias Creadas']);
+      content=buildCSV(rows,['Empleado','Departamento','Rol','Inc. Creadas','Inc. Resueltas','Tareas Hoy','% Completado']);
       filename=`noctis-empleados-${from}.csv`;
     } else if(type==='checklists'){
       const rows=TEMPLATES.flatMap(t=>t.items.map((item,i)=>{
@@ -2018,14 +2133,20 @@ function downloadReport(type,format){
   let tableHTML='';
 
   if(type==='incidencias'){
-    const rows=INCIDENTS.map(i=>`<tr><td>${i.id}</td><td><strong>${i.title}</strong><br><small style="color:#666">${i.desc||''}</small></td><td>${i.dept}</td><td><span style="color:${i.prio==='CRITICA'?'#8b1a1a':i.prio==='ALTA'?'#7a4a0a':'#1a3a5c'};font-weight:700">${i.prio}</span></td><td><span style="color:${i.status==='ABIERTA'?'#8b1a1a':i.status==='RESUELTA'?'#2e4a1e':'#7a4a0a'};font-weight:700">${i.status}</span></td><td>${i.at}</td></tr>`).join('');
-    tableHTML=`<table border="1" cellpadding="8" cellspacing="0" style="border-collapse:collapse;width:100%;font-size:12px"><thead><tr style="background:#e8e0d0"><th>ID</th><th>Título</th><th>Dpto.</th><th>Prioridad</th><th>Estado</th><th>Fecha</th></tr></thead><tbody>${rows}</tbody></table>`;
+    const rows=INCIDENTS.map(i=>`<tr><td>${i.id}</td><td><strong>${i.title}</strong><br><small style="color:#666">${i.desc||''}</small></td><td>${i.dept}</td><td><span style="color:${i.prio==='CRITICA'?'#8b1a1a':i.prio==='ALTA'?'#7a4a0a':'#1a3a5c'};font-weight:700">${i.prio}</span></td><td><span style="color:${i.status==='ABIERTA'?'#8b1a1a':i.status==='RESUELTA'?'#2e4a1e':'#7a4a0a'};font-weight:700">${i.status}</span></td><td>${i.at?new Date(i.at).toLocaleDateString('es-ES'):'-'}</td><td>${i.updated_at?new Date(i.updated_at).toLocaleDateString('es-ES'):'-'}</td></tr>`).join('');
+    tableHTML=`<table border="1" cellpadding="8" cellspacing="0" style="border-collapse:collapse;width:100%;font-size:12px"><thead><tr style="background:#e8e0d0"><th>ID</th><th>Título</th><th>Dpto.</th><th>Prioridad</th><th>Estado</th><th>Fecha Apertura</th><th>Última Actualización</th></tr></thead><tbody>${rows}</tbody></table>`;
   } else if(type==='empleados'){
     const rows=USERS.filter(u=>u.active).map(u=>{
-      const myInc=INCIDENTS.filter(i=>i.by===u.id).length;
-      return`<tr><td><strong>${u.name}</strong></td><td>${u.email}</td><td>${u.dept}</td><td>${roleLabel(u.role)}</td><td style="text-align:center">${myInc}</td></tr>`;
+      const incCreadas=INCIDENTS.filter(i=>i.by===u.id).length;
+      const incResueltas=INCIDENTS.filter(i=>i.by===u.id&&i.status==='RESUELTA').length;
+      const chkDone=Object.values(CHK).filter(c=>c.user===u.name).length;
+      const deptTpls=TEMPLATES.filter(t=>t.dept===u.dept);
+      const totalChk=deptTpls.reduce((s,t)=>s+t.items.length,0);
+      const pct=totalChk>0?Math.round(chkDone/totalChk*100):0;
+      const pctColor=pct===100?'#2e4a1e':pct>=50?'#7a4a0a':'#8b1a1a';
+      return`<tr><td><strong>${u.name}</strong><br><small style="color:#666">${u.dept}</small></td><td>${roleLabel(u.role)}</td><td style="text-align:center">${incCreadas}</td><td style="text-align:center">${incResueltas}</td><td style="text-align:center;font-weight:700;color:${pctColor}">${chkDone}/${totalChk} (${pct}%)</td></tr>`;
     }).join('');
-    tableHTML=`<table border="1" cellpadding="8" cellspacing="0" style="border-collapse:collapse;width:100%;font-size:12px"><thead><tr style="background:#e8e0d0"><th>Nombre</th><th>Email</th><th>Departamento</th><th>Rol</th><th>Incid. Creadas</th></tr></thead><tbody>${rows}</tbody></table>`;
+    tableHTML=`<table border="1" cellpadding="8" cellspacing="0" style="border-collapse:collapse;width:100%;font-size:12px"><thead><tr style="background:#e8e0d0"><th>Empleado</th><th>Rol</th><th>Inc. Creadas</th><th>Inc. Resueltas</th><th>Tareas Completadas Hoy</th></tr></thead><tbody>${rows}</tbody></table>`;
   } else if(type==='checklists'){
     const rows=TEMPLATES.map(t=>{
       const done=t.items.filter((_,i)=>CHK[`${t.id}-${from}-${i}`]).length;
