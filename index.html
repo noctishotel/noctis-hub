@@ -1069,9 +1069,15 @@ function doLogin(userObj){
   if (!u) {
     var email = document.getElementById('l-email').value.trim().toLowerCase();
     var pwd   = document.getElementById('l-pwd').value.trim();
-    u = USERS.find(function(x){ return x.email.toLowerCase()===email && x.pwd===pwd && x.active; });
+    u = USERS.find(function(x){ return x.email.toLowerCase()===email && (x.pwd||'').trim()===pwd && x.active; });
     if (!u) {
-      alert('Email o contraseña incorrectos');
+      // Check if email exists but pwd doesn't match (helps debug)
+      const emailExists = USERS.find(function(x){ return x.email.toLowerCase()===email; });
+      if(emailExists && !emailExists.pwd) {
+        alert('Este usuario no tiene contraseña configurada. Contacta al administrador.');
+      } else {
+        alert('Email o contraseña incorrectos');
+      }
       return;
     }
   }
@@ -1817,9 +1823,9 @@ function openNewAlarm(){
 async function saveAlarm(){
   const title=document.getElementById('af-title').value.trim();
   const note=document.getElementById('af-note').value.trim();
-  const prio=document.getElementById('af-prio').value;
   const time=document.getElementById('af-time').value;
   if(!title){toast('✗ Escribe un título');return;}
+  if(!time){toast('✗ Selecciona fecha y hora');return;}
   const obj={title,note,alarm_time:time,dept:cu.dept,done:false,created_by:cu.id};
   try{
     const[saved]=await SB.post('nh_alarms',obj);
