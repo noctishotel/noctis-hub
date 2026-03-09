@@ -443,7 +443,7 @@ td { padding:13px 16px; font-size: 0.941rem; color:var(--ink); vertical-align:mi
     </div>
     <div class="topbar-right">
       <!-- Bell -->
-      <div class="notif-bell-btn" onclick="toggleNotifDropdown()" id="bell-btn">
+      <div class="notif-bell-btn" onclick="toggleNotifDropdown(event)" id="bell-btn">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#2e4a1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
         <div class="notif-bell-dot" id="bell-dot" style="display:none">0</div>
       </div>
@@ -887,7 +887,7 @@ td { padding:13px 16px; font-size: 0.941rem; color:var(--ink); vertical-align:mi
       <textarea class="form-textarea" id="af-note" placeholder="Ej: Llamar a Jordan para que venga mañana a las 10h..."></textarea>
       <label class="form-label">Fecha y Hora</label>
       <input class="form-input" id="af-time" type="datetime-local">
-      
+    </div>
     <div class="modal-foot">
       <button class="btn btn-outline" onclick="closeModal('modal-alarm')">Cancelar</button>
       <button class="btn btn-green" onclick="saveAlarm()">Crear Alarma</button>
@@ -1177,25 +1177,33 @@ async function applyConfigFromDB(){
 }
 
 function buildNotifications(){
-  NOTIFICATIONS=[];
   const isS=cu.role==='SUPER_ADMIN';
+  // Keep existing read states by alarmId/incId
+  const readAlarms=new Set(NOTIFICATIONS.filter(n=>n.read&&n.alarmId).map(n=>n.alarmId));
+  const readIncs=new Set(NOTIFICATIONS.filter(n=>n.read&&n.incId).map(n=>n.incId));
+  NOTIFICATIONS=[];
+  IDS.notif=1;
   // Alarms: super sees all, others see their dept or own
   const myAlarms=isS ? ALARMS : ALARMS.filter(a=>a.dept===cu.dept||a.created_by===cu.id);
   myAlarms.filter(a=>!a.done).forEach(a=>{
-    NOTIFICATIONS.push({id:IDS.notif++,type:'alarm',title:a.title,sub:a.note||a.time,color:'#d4830a',read:false,alarmId:a.id});
+    NOTIFICATIONS.push({id:IDS.notif++,type:'alarm',title:a.title,sub:a.note||(a.alarm_time?a.alarm_time.replace('T',' '):''),color:'#d4830a',read:readAlarms.has(a.id),alarmId:a.id});
   });
   // Critical incidents: super sees all, others see their dept only
   const myCrit=isS ? INCIDENTS : INCIDENTS.filter(i=>i.dept===cu.dept);
   myCrit.filter(i=>i.prio==='CRITICA'&&i.status!=='RESUELTA').forEach(i=>{
-    NOTIFICATIONS.push({id:IDS.notif++,type:'incident',title:'CRÍTICA: '+i.title,sub:i.dept+' · '+i.at,color:'#8b1a1a',read:false,incId:i.id});
+    NOTIFICATIONS.push({id:IDS.notif++,type:'incident',title:'CRÍTICA: '+i.title,sub:i.dept+' · '+i.at,color:'#8b1a1a',read:readIncs.has(i.id),incId:i.id});
   });
 }
 
 function populateSelects(){
   const allDepts=['Dirección',...DEPTS];
-  const myDepts=cu.role==='SUPER_ADMIN'?allDepts:[cu.dept];
+  const isS=cu.role==='SUPER_ADMIN';
+  const isA=cu.role==='ADMIN';
+  const myDepts=isS?allDepts:[cu.dept];
+  const userDepts=isS?allDepts:(isA?[cu.dept]:allDepts);
+  const tplDepts=isS?DEPTS:(isA?[cu.dept]:DEPTS);
 
-  [['inc-f-dept',myDepts],['uf-dept',allDepts],['tf-dept',DEPTS],
+  [['inc-f-dept',myDepts],['uf-dept',userDepts],['tf-dept',tplDepts],
    ['chk-dept-sel',['Todos',...DEPTS]],['arc-dept-sel',['Todos',...DEPTS]]
   ].forEach(([id,list])=>{
     const el=document.getElementById(id);
@@ -1265,10 +1273,11 @@ function toggleMobileMenu(){
 // ══════════════════════════════════════════════════════════════
 // NOTIFICATIONS
 // ══════════════════════════════════════════════════════════════
-function toggleNotifDropdown(){
+function toggleNotifDropdown(e){
+  if(e) e.stopPropagation();
   const dd=document.getElementById('notif-dropdown');
   dd.classList.toggle('open');
-  if(dd.classList.contains('open'))renderNotifDropdown();
+  if(dd.classList.contains('open')){buildNotifications();updateBadges();renderNotifDropdown();}
 }
 
 function renderNotifDropdown(){
@@ -1328,7 +1337,8 @@ function renderDashboard(){
     </div>`).join('');
 
   // Alarms today
-  const todayAlarms=ALARMS.filter(a=>!a.done&&a.time&&a.time.startsWith(today));
+  const allTodayAlarms=ALARMS.filter(a=>!a.done&&a.time&&a.time.startsWith(today));
+  const todayAlarms=isS_d ? allTodayAlarms : allTodayAlarms.filter(a=>a.dept===cu.dept||a.created_by===cu.id);
   document.getElementById('dash-alarms').innerHTML=todayAlarms.map(a=>`
     <div class="alarm-banner">
       <div class="banner-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#2e4a1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></div>
@@ -1341,10 +1351,12 @@ function renderDashboard(){
     const allDone=t.items.every((_,i)=>CHK[`${t.id}-${today}-${i}`]);
     if(allDone&&t.items.length>0)chkDone++;
   });
+  const kpiScope = cu.role==='SUPER_ADMIN' ? INCIDENTS : INCIDENTS.filter(i=>i.dept===cu.dept);
+  const kpiUsers = cu.role==='SUPER_ADMIN' ? USERS : USERS.filter(u=>u.dept===cu.dept);
   document.getElementById('kpi-chk').textContent=chkDone;
-  document.getElementById('kpi-open').textContent=INCIDENTS.filter(i=>i.status==='ABIERTA').length;
-  document.getElementById('kpi-crit').textContent=INCIDENTS.filter(i=>i.prio==='CRITICA'&&i.status!=='RESUELTA').length;
-  document.getElementById('kpi-staff').textContent=USERS.filter(u=>u.active).length;
+  document.getElementById('kpi-open').textContent=kpiScope.filter(i=>i.status==='ABIERTA').length;
+  document.getElementById('kpi-crit').textContent=kpiScope.filter(i=>i.prio==='CRITICA'&&i.status!=='RESUELTA').length;
+  document.getElementById('kpi-staff').textContent=kpiUsers.filter(u=>u.active).length;
 
   // Dept table
   document.getElementById('dept-table').innerHTML=DEPTS.map(d=>{
@@ -1358,7 +1370,8 @@ function renderDashboard(){
   }).join('');
 
   // Recent incidents
-  document.getElementById('dash-recent-inc').innerHTML=INCIDENTS.slice(0,4).map(i=>incCard(i)).join('');
+  const recentScope = cu.role==='SUPER_ADMIN' ? INCIDENTS : INCIDENTS.filter(i=>i.dept===cu.dept);
+  document.getElementById('dash-recent-inc').innerHTML=recentScope.slice(0,4).map(i=>incCard(i)).join('');
 
   // Bars
   const maxInc=Math.max(1,...DEPTS.map(d=>INCIDENTS.filter(i=>i.dept===d).length));
@@ -1510,9 +1523,18 @@ function sendWhatsAppSummary(){
   window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
 }
 
-function requestNotifPermission(){
-  if('Notification' in window && Notification.permission === 'default'){
-    Notification.requestPermission();
+async function requestNotifPermission(){
+  if(!('Notification' in window)) return;
+  if(Notification.permission === 'default'){
+    const result = await Notification.requestPermission();
+    if(result === 'granted'){
+      toast('✓ Notificaciones activadas — recibirás alertas de alarmas');
+    } else {
+      toast('⚠ Notificaciones bloqueadas — actívalas en ajustes del navegador');
+    }
+  } else if(Notification.permission === 'denied'){
+    // Show a persistent banner explaining how to re-enable
+    console.warn('Notifications blocked by user');
   }
 }
 
@@ -1958,6 +1980,17 @@ function openAddUser(){
   document.getElementById('uf-role').value='EMPLOYEE';
   document.getElementById('modal-user-title').textContent='Nuevo Usuario';
   document.getElementById('pwd-optional').style.display='none';
+  // Lock dept for ADMIN and hide SUPER_ADMIN option
+  const deptSel=document.getElementById('uf-dept');
+  const roleSel=document.getElementById('uf-role');
+  if(cu.role==='ADMIN'){
+    deptSel.value=cu.dept; deptSel.disabled=true;
+    // Remove SUPER_ADMIN option if present
+    Array.from(roleSel.options).forEach(o=>{if(o.value==='SUPER_ADMIN')o.disabled=true;});
+  } else {
+    deptSel.disabled=false;
+    Array.from(roleSel.options).forEach(o=>o.disabled=false);
+  }
   openModal('modal-user');
 }
 
@@ -1971,6 +2004,15 @@ function editUser(id){
   document.getElementById('uf-role').value=u.role;
   document.getElementById('modal-user-title').textContent='Editar Usuario';
   document.getElementById('pwd-optional').style.display='';
+  const deptSel=document.getElementById('uf-dept');
+  const roleSel=document.getElementById('uf-role');
+  if(cu.role==='ADMIN'){
+    deptSel.disabled=true;
+    Array.from(roleSel.options).forEach(o=>{if(o.value==='SUPER_ADMIN')o.disabled=true;});
+  } else {
+    deptSel.disabled=false;
+    Array.from(roleSel.options).forEach(o=>o.disabled=false);
+  }
   openModal('modal-user');
 }
 
@@ -2051,10 +2093,10 @@ function adminTab(tab,el){
 async function deactivateUser(id){
   if(cu.role!=='SUPER_ADMIN'&&cu.role!=='ADMIN'){toast('✗ No tienes permiso');return;}
   const u = USERS.find(x => x.id===id);
+  if(!u){toast('✗ Usuario no encontrado');return;}
   // ADMIN can only deactivate users from their own dept and cannot deactivate SUPER_ADMIN
-  if(cu.role==='ADMIN'&&(u?.dept!==cu.dept||u?.role==='SUPER_ADMIN')){toast('✗ No puedes desactivar a este usuario');return;}
-  const u = USERS.find(x => x.id===id);
-  if (u && confirm(`¿Desactivar a ${u.name}?`)) {
+  if(cu.role==='ADMIN'&&(u.dept!==cu.dept||u.role==='SUPER_ADMIN')){toast('✗ No puedes desactivar a este usuario');return;}
+  if (confirm(`¿Desactivar a ${u.name}?`)) {
     try { await SB.patch('nh_users', `?id=eq.${id}`, { active: false }); u.active = false; }
     catch(e) { toast('✗ Error'); return; }
     renderAdmin();
@@ -2067,8 +2109,31 @@ async function deactivateUser(id){
 // ══════════════════════════════════════════════════════════════
 // TEMPLATES — Supabase version
 // ══════════════════════════════════════════════════════════════
-function openNewTemplate(){ document.getElementById('tf-id').value=''; document.getElementById('tf-name').value=''; document.getElementById('tf-items').value=''; document.getElementById('tf-shift').value='Turno Mañana'; document.getElementById('modal-tpl-title').textContent='Nueva Plantilla'; openModal('modal-template'); }
-function editTemplate(id){ const t=TEMPLATES.find(x=>x.id===id);if(!t)return; document.getElementById('tf-id').value=id; document.getElementById('tf-name').value=t.name; document.getElementById('tf-dept').value=t.dept; document.getElementById('tf-shift').value=t.shift; document.getElementById('tf-items').value=t.items.join('\n'); document.getElementById('modal-tpl-title').textContent='Editar Plantilla'; openModal('modal-template'); }
+function openNewTemplate(){
+  document.getElementById('tf-id').value='';
+  document.getElementById('tf-name').value='';
+  document.getElementById('tf-items').value='';
+  document.getElementById('tf-shift').value='Turno Mañana';
+  document.getElementById('modal-tpl-title').textContent='Nueva Plantilla';
+  // Lock dept for ADMIN
+  const deptSel=document.getElementById('tf-dept');
+  if(cu.role==='ADMIN'){deptSel.value=cu.dept;deptSel.disabled=true;}
+  else deptSel.disabled=false;
+  openModal('modal-template');
+}
+function editTemplate(id){
+  const t=TEMPLATES.find(x=>x.id===id);if(!t)return;
+  document.getElementById('tf-id').value=id;
+  document.getElementById('tf-name').value=t.name;
+  document.getElementById('tf-dept').value=t.dept;
+  document.getElementById('tf-shift').value=t.shift;
+  document.getElementById('tf-items').value=t.items.join('\n');
+  document.getElementById('modal-tpl-title').textContent='Editar Plantilla';
+  const deptSel=document.getElementById('tf-dept');
+  if(cu.role==='ADMIN'){deptSel.value=cu.dept;deptSel.disabled=true;}
+  else deptSel.disabled=false;
+  openModal('modal-template');
+}
 
 async function saveTemplate(){
   if(cu.role==='EMPLOYEE'){toast('✗ No tienes permiso para crear o editar plantillas');return;}
