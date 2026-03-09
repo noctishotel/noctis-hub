@@ -1311,7 +1311,7 @@ function navTo(page,el){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById('page-'+page).classList.add('active');
   closeSidebar();
-  const renders={dashboard:renderDashboard,checklists:renderChecklists,incidents:renderIncidents,alarms:renderAlarms,team:renderTeam,reports:()=>{},admin:renderAdmin,hotels:renderHotels,archive:renderArchive,notes:renderNotes};
+  const renders={dashboard:renderDashboard,checklists:renderChecklists,incidents:renderIncidents,alarms:renderAlarms,team:renderTeam,reports:()=>{},admin:renderAdmin,hotels:renderHotels,archive:renderArchive,notes:async function(){ await loadNotes(); renderNotes(); }};
   if(renders[page])renders[page]();
 }
 
@@ -1774,23 +1774,29 @@ function renderNotes(){
   const isS = cu.role==='SUPER_ADMIN';
   const subtitle = document.getElementById('notes-subtitle');
   const tabs = document.getElementById('notes-dept-tabs');
-  let availableDepts;
+  const D_LABELS = {Recepción:'🛎️',Housekeeping:'🛏️',Mantenimiento:'🔧','F&B':'☕',Administración:'📁',Dirección:'🏠'};
+  const allDepts = ['Recepción','Housekeeping','Mantenimiento','F&B','Administración','Dirección'];
+  const availableDepts = isS ? allDepts : [cu.dept];
   if(isS){
-    availableDepts = [...DEPTS,'Dirección'];
     subtitle.textContent = 'Como Super Admin puedes ver los blocs de todos los departamentos';
   } else {
-    availableDepts = [cu.dept];
     subtitle.textContent = 'Notas privadas de '+cu.dept+' — solo visibles para tu departamento';
   }
   if(!notesDept || !availableDepts.includes(notesDept)) notesDept = availableDepts[0];
-  tabs.innerHTML = availableDepts.map(function(d){
-    return '<div class="chip'+(notesDept===d?' active':'')+'" onclick="switchNotesDept(\''+d+'\')">'+( (typeof D_ICONS!=='undefined'&&D_ICONS[d])||'' )+' '+d+'</div>';
-  }).join('');
+  // Build tabs safely without breaking quotes
+  tabs.innerHTML = '';
+  availableDepts.forEach(function(d){
+    const btn = document.createElement('div');
+    btn.className = 'chip' + (notesDept===d ? ' active' : '');
+    btn.textContent = (D_LABELS[d]||'📝') + ' ' + d;
+    btn.addEventListener('click', function(){ switchNotesDept(d); });
+    tabs.appendChild(btn);
+  });
   const editor = document.getElementById('notepad-editor');
   const note = NOTES[notesDept];
   editor.innerHTML = note ? note.content : '';
   const lastSaved = document.getElementById('notepad-last-saved');
-  lastSaved.textContent = note && note.updatedAt ? 'Último guardado: '+new Date(note.updatedAt).toLocaleString('es-ES') : '';
+  lastSaved.textContent = note && note.updatedAt ? 'Último guardado: '+new Date(note.updatedAt).toLocaleString('es-ES') : 'Sin guardar aún';
 }
 
 function switchNotesDept(dept){
