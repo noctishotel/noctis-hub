@@ -479,8 +479,10 @@ td { padding:13px 16px; font-size: 0.941rem; color:var(--ink); vertical-align:mi
       <div style="display:flex;flex-direction:column;align-items:flex-end">
         <span class="user-name-top" id="top-name">—</span>
         <span class="user-role-top" id="top-role">—</span>
+        <span id="top-hotel" style="font-size:10px;color:var(--gold);font-weight:600;display:none"></span>
       </div>
       <div class="user-avatar" id="top-avatar">?</div>
+      <div id="rt-sync-dot" title="Sincronizando..." style="width:8px;height:8px;border-radius:50%;background:var(--forest);opacity:0;transition:opacity 0.3s;flex-shrink:0"></div>
       <button class="btn-logout" onclick="doLogout()">↺ Salir</button>
     </div>
   </div>
@@ -514,6 +516,7 @@ td { padding:13px 16px; font-size: 0.941rem; color:var(--ink); vertical-align:mi
         <div>
           <div class="page-title">Panel de Dirección</div>
           <div class="page-subtitle" id="dash-date">—</div>
+          <div id="dash-hotel-badge" style="margin-top:4px"></div>
         </div>
         <button class="btn btn-green" onclick="openNewIncident()">+ Nueva Incidencia</button>
       </div>
@@ -1141,64 +1144,28 @@ let IDS = {user:14,inc:6,alarm:4,tpl:9,hotel:2,notif:1};
 // ══════════════════════════════════════════════════════════════
 async function loadAllData() {
   try {
-    const [users, hotels, templates, incidents, alarms, checklists] = await Promise.all([
-      SB.get('nh_users', '?order=id'),
-      SB.get('nh_hotels', '?order=id'),
-      SB.get('nh_templates', '?order=id'),
-      SB.get('nh_incidents', '?order=id.desc'),
-      SB.get('nh_alarms', '?order=id.desc'),
-      SB.get('nh_checklist', `?date=eq.${new Date().toISOString().slice(0,10)}`),
-    ]);
-
-    if (users && users.length > 0) USERS = users.map(u => ({...u}));
-    if (hotels && hotels.length > 0) HOTELS = hotels;
-    if (templates && templates.length > 0) TEMPLATES = templates.map(t => ({...t, items: Array.isArray(t.items) ? t.items : JSON.parse(t.items||'[]')}));
-    if (incidents && incidents.length > 0) INCIDENTS = incidents.map(i => ({...i, desc: i.description, by: i.created_by, at: i.created_at, assigned_to: i.assigned_to||'[]', history: Array.isArray(i.history) ? i.history : JSON.parse(i.history||'[]')}));
-    if (alarms && alarms.length > 0) ALARMS = alarms.map(a => ({...a, time: a.alarm_time}));
-
-    CHK = {};
-    if (checklists) checklists.forEach(row => {
-      const key = `${row.template_id}-${row.date}-${row.item_index}`;
-      CHK[key] = { user: row.user_name, time: row.completed_at ? new Date(row.completed_at).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}) : '', dbId: row.id };
-    });
-    // Update IDS counters from real DB data
-    IDS.user = (users && users.length ? Math.max(...users.map(u=>u.id)) : 13) + 1;
-    IDS.inc  = (incidents && incidents.length ? Math.max(...incidents.map(i=>i.id)) : 0) + 1;
-    IDS.alarm= (alarms && alarms.length ? Math.max(...alarms.map(a=>a.id)) : 0) + 1;
-    IDS.tpl  = (templates && templates.length ? Math.max(...templates.map(t=>t.id)) : 0) + 1;
-    IDS.hotel= (hotels && hotels.length ? Math.max(...hotels.map(h=>h.id)) : 0) + 1;
-
-    // Load config colors
-    try {
-      const cfg = await SB.get('nh_config', '');
-      if(cfg && cfg.length) {
-        const colorMap={color_forest:'forest',color_topbar:'topbar',color_gold:'gold',color_red:'red',color_cream:'cream','color_forest-light':'forest-light',color_amber:'amber',color_blue:'blue',color_forest2:'forest2',color_border:'border'};
-        cfg.forEach(row => {
-          if(row.key==='font_family'){ applyFont(row.value); }
-          if(row.key==='hotel_name' && row.value){ const el=document.getElementById('cfg-hotel'); if(el) el.value=row.value; }
-          if(row.key==='app_name' && row.value){ const el=document.getElementById('cfg-appname'); if(el) el.value=row.value; }
-          if(row.key==='font_size'){ applyFontSize(row.value); const el=document.getElementById('cfg-fontsize');if(el)el.value=row.value; }
-          if(colorMap[row.key]) {
-            applyColor(colorMap[row.key], row.value);
-            const el=document.getElementById('cfg-'+colorMap[row.key]);
-            if(el) el.value=row.value;
-          }
-        });
+    // 1. Cargar lista de hoteles
+    const hotels = await SB.get('nh_hotels', '?order=id');
+    if(hotels && hotels.length > 0){
+      HOTELS = hotels;
+      IDS.hotel = Math.max(...hotels.map(h=>h.id)) + 1;
+      // Si aún no hay hotel activo, usar el primero activo
+      if(!activeHotelId){
+        const first = hotels.find(h=>h.active) || hotels[0];
+        if(first){ activeHotelId = first.id; activeHotelName = first.name; }
+      } else {
+        const cur = hotels.find(h=>h.id===activeHotelId);
+        if(cur) activeHotelName = cur.name;
       }
-    } catch(e) {}
+    }
 
-    if (USERS.length)     IDS.user  = Math.max(...USERS.map(u=>u.id)) + 1;
-    if (INCIDENTS.length) IDS.inc   = Math.max(...INCIDENTS.map(i=>i.id)) + 1;
-    if (ALARMS.length)    IDS.alarm = Math.max(...ALARMS.map(a=>a.id)) + 1;
-    if (TEMPLATES.length) IDS.tpl   = Math.max(...TEMPLATES.map(t=>t.id)) + 1;
-    if (HOTELS.length)    IDS.hotel = Math.max(...HOTELS.map(h=>h.id)) + 1;
-    // Sync alarms to Service Worker (fires even with app minimized)
+    // 2. Cargar datos del hotel activo
+    await loadHotelData();
+
     setTimeout(syncAlarmsToSW, 1000);
   } catch(e) {
     console.warn('Supabase no disponible, usando datos locales:', e.message);
   }
-  // Load notes separately so it never breaks login
-  try { await loadNotes(); } catch(e) {}
 }
 
 function showLoading(on) { /* disabled */ }
@@ -1208,7 +1175,7 @@ function showDbError() { /* disabled */ }
 // ══════════════════════════════════════════════════════════════
 // AUTH
 // ══════════════════════════════════════════════════════════════
-function doLogin(userObj){
+async function doLogin(userObj){
   var u = userObj;
   if (!u) {
     var email = document.getElementById('l-email').value.trim().toLowerCase();
@@ -1244,11 +1211,10 @@ function doLogin(userObj){
 }
 
 function doLogout(){
-  // Stop alarm checker and SW heartbeat
   if(alarmCheckerInterval){ clearInterval(alarmCheckerInterval); alarmCheckerInterval=null; }
   if(_swHeartbeat){ clearInterval(_swHeartbeat); _swHeartbeat=null; }
-  // Clear SW alarm store so no notifications fire after logout
   swPost({ type: 'SYNC_ALARMS', alarms: [] });
+  stopRealtime();
   cu = null;
   try { localStorage.removeItem('noctis_session'); } catch(e) {}
   document.getElementById('app').style.display = 'none';
@@ -1285,6 +1251,13 @@ function initApp(){
   document.getElementById('top-name').textContent = cu.name;
   document.getElementById('top-role').textContent = roleLabel(cu.role);
   document.getElementById('top-avatar').textContent = cu.name[0];
+  // Update hotel indicator in topbar
+  const topHotel = document.getElementById('top-hotel');
+  if(topHotel){
+    const hName = activeHotelName || (HOTELS.find(h=>h.id===activeHotelId)||{}).name || '';
+    topHotel.textContent = hName ? '🏨 '+hName : '';
+    topHotel.style.display = hName ? '' : 'none';
+  }
 
   // SuperAdmin only items
   ['nsec-admin','nav-admin','nav-hotels','nav-archive'].forEach(id => {
@@ -1302,9 +1275,10 @@ function initApp(){
   // Show WhatsApp summary button for admin+
   const wabtn = document.getElementById('btn-whatsapp-summary');
   if(wabtn) wabtn.style.display = (isS||isA) ? '' : 'none';
-  // Re-apply config after DOM is ready
-  applyConfigFromDB();
+  // Apply config from DB — await so colors/fonts are ready before showing dashboard
+  await applyConfigFromDB();
   startAlarmChecker();
+  startRealtime();
   requestNotifPermission();
   registerServiceWorker();
   navTo('dashboard');
@@ -1316,19 +1290,22 @@ async function applyConfigFromDB(){
     if(!cfg||!cfg.length) return;
     const colorMap={color_forest:'forest',color_topbar:'topbar',color_gold:'gold',color_red:'red',color_cream:'cream','color_forest-light':'forest-light',color_amber:'amber',color_blue:'blue',color_forest2:'forest2',color_border:'border'};
     cfg.forEach(row => {
-      if(row.key==='font_family') applyFont(row.value);
-      if(row.key==='font_size') applyFontSize(row.value);
+      if(row.key==='font_family'){ applyFont(row.value); const el=document.getElementById('cfg-font');if(el)el.value=row.value; }
+      if(row.key==='font_size'){ applyFontSize(row.value); const el=document.getElementById('cfg-fontsize');if(el){el.value=row.value;} const ev=document.getElementById('cfg-fontsize-val');if(ev)ev.textContent=row.value+'px'; }
       if(colorMap[row.key]) {
         applyColor(colorMap[row.key], row.value);
         const el=document.getElementById('cfg-'+colorMap[row.key]);
         if(el) el.value=row.value;
       }
       if(row.key==='hotel_name'&&row.value){ const el=document.getElementById('cfg-hotel');if(el)el.value=row.value; }
-      if(row.key==='app_name'&&row.value){ const el=document.getElementById('cfg-appname');if(el)el.value=row.value; }
-      if(row.key==='font_family'){ const el=document.getElementById('cfg-font');if(el)el.value=row.value; }
-      if(row.key==='font_size'){ const el=document.getElementById('cfg-fontsize');if(el)el.value=row.value; }
+      if(row.key==='app_name'&&row.value){
+        const el=document.getElementById('cfg-appname');if(el)el.value=row.value;
+        // Update topbar app name if present
+        const topEl=document.querySelector('.topbar-logo');
+        if(topEl&&row.value) topEl.innerHTML=row.value.replace(' ','<br>').replace(' ','<br>');
+      }
     });
-  } catch(e){}
+  } catch(e){ console.warn('applyConfigFromDB error:',e.message); }
 }
 
 function buildNotifications(){
@@ -1479,6 +1456,11 @@ document.addEventListener('click',e=>{
 function renderDashboard(){
   const now=new Date();
   document.getElementById('dash-date').textContent=now.toLocaleDateString('es-ES',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  const hotelBadge = document.getElementById('dash-hotel-badge');
+  if(hotelBadge){
+    const hName = activeHotelName || (HOTELS.find(h=>h.id===activeHotelId)||{}).name || '';
+    hotelBadge.innerHTML = hName ? `<span style="display:inline-flex;align-items:center;gap:5px;background:var(--forest);color:#fff;font-size:12px;font-weight:600;padding:3px 10px;border-radius:20px">🏨 ${hName}</span>` : '';
+  }
   const today=now.toISOString().slice(0,10);
 
   // Urgent — filter by role
@@ -1637,7 +1619,7 @@ async function toggleChk(ck){
     const timeStr=now.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
     CHK[ck]={user:cu.name,time:timeStr};
     try{
-      await SB.post('nh_checklist',{template_id:parseInt(tplId),date:date,item_index:idx,user_id:cu.id,user_name:cu.name,completed_at:now.toISOString()});
+      await SB.post('nh_checklist',{hotel_id:activeHotelId,template_id:parseInt(tplId),date:date,item_index:idx,user_id:cu.id,user_name:cu.name,completed_at:now.toISOString()});
     }catch(e){}
   }
   saveArchiveSnapshot();
@@ -2101,7 +2083,7 @@ async function saveIncident(){
   } else {
     const newInc={title,dept,prio,status:'ABIERTA',desc,history:[{date:nowStr(),text:'Creada por '+cu.name}],at:nowStr(),by:cu.id,id:IDS.inc++};
     try{
-      const [saved]=await SB.post('nh_incidents',{title,dept,prio,status:'ABIERTA',description:desc,assigned_to:JSON.stringify(assigned_to),created_by:cu.id,created_at:nowStr(),history:newInc.history});
+      const [saved]=await SB.post('nh_incidents',{hotel_id:activeHotelId,title,dept,prio,status:'ABIERTA',description:desc,assigned_to:JSON.stringify(assigned_to),created_by:cu.id,created_at:nowStr(),history:newInc.history});
       if(saved) newInc.id=saved.id;
     } catch(e){ toast('✗ Error Supabase'); return; }
     INCIDENTS.unshift(newInc);
@@ -2109,7 +2091,7 @@ async function saveIncident(){
   }
   // Create alarm linked to incident if alarmTime is set
   if(alarmTime){
-    const alarmObj={title:'[Inc] '+title,note:dept+' — '+(desc||'').slice(0,80),alarm_time:alarmTime,dept:dept,done:false,created_by:cu.id};
+    const alarmObj={hotel_id:activeHotelId,title:'[Inc] '+title,note:dept+' — '+(desc||'').slice(0,80),alarm_time:alarmTime,dept:dept,done:false,created_by:cu.id};
     try{const[sa]=await SB.post('nh_alarms',alarmObj);ALARMS.unshift({...alarmObj,id:sa?sa.id:Date.now()});}catch(e){}
   }
   closeModal('modal-incident');
@@ -2185,7 +2167,7 @@ async function saveAlarm(){
   const targetDepts=deptVal==='Todos'?[...DEPTS,'Dirección']:[deptVal];
   try{
     for(const dept of targetDepts){
-      const obj={title,note,alarm_time:time,dept,done:false,created_by:cu.id};
+      const obj={hotel_id:activeHotelId,title,note,alarm_time:time,dept,done:false,created_by:cu.id};
       const[saved]=await SB.post('nh_alarms',obj);
       ALARMS.unshift({...obj,id:saved?saved.id:IDS.alarm++,time});
     }
@@ -2315,7 +2297,7 @@ async function saveUser(){
     if(!pwd){toast('✗ La contraseña es obligatoria');return;}
     const newU={name,email,dept,role,pwd,active:true,id:IDS.user++};
     try{
-      const[saved]=await SB.post('nh_users',{name,email,dept,role,pwd,active:true});
+      const[saved]=await SB.post('nh_users',{hotel_id:activeHotelId,name,email,dept,role,pwd,active:true});
       if(saved) newU.id=saved.id;
     }catch(e){toast('✗ Error Supabase');return;}
     USERS.push(newU);
@@ -2446,7 +2428,7 @@ async function saveTemplate(){
   }else{
     const newT={name,dept,shift,items,id:IDS.tpl++};
     try{
-      const[saved]=await SB.post('nh_templates',{name,dept,shift,items});
+      const[saved]=await SB.post('nh_templates',{hotel_id:activeHotelId,name,dept,shift,items});
       if(saved) newT.id=saved.id;
     }catch(e){toast('✗ Error Supabase');return;}
     TEMPLATES.push(newT);
@@ -2458,7 +2440,7 @@ async function saveTemplate(){
 // ══════════════════════════════════════════════════════════════
 // HOTELS
 // ══════════════════════════════════════════════════════════════
-let activeHotelId = null; // null = default hotel
+// activeHotelId defined above near hotel context section
 
 function renderHotels(){
   const grid=document.getElementById('hotels-grid');
@@ -2490,14 +2472,64 @@ function renderHotels(){
     </div>`;
 }
 
+// ══════════════════════════════════════════════════════════════
+// HOTEL CONTEXT — qué hotel está activo ahora mismo
+// ══════════════════════════════════════════════════════════════
+let activeHotelId = 1; // empieza en hotel 1 (Noctis Soria / primer hotel)
+let activeHotelName = '';
+
 async function switchToHotel(id){
-  const h = HOTELS.find(x=>x.id===id);
+  const h = HOTELS.find(x => x.id === id);
   if(!h) return;
-  if(!confirm(`¿Cambiar al hotel "${h.name}"?\n\nVerás y gestionarás los datos de este hotel.`)) return;
+  if(!confirm(`¿Cambiar al hotel "${h.name}"?\n\nSe cargarán los empleados, checklists e incidencias de ese hotel.`)) return;
   activeHotelId = id;
-  toast(`✓ Ahora gestionando: ${h.name}`);
+  activeHotelName = h.name;
+  // Update topbar hotel indicator
+  const topHotel = document.getElementById('top-hotel');
+  if(topHotel){ topHotel.textContent = '🏨 '+h.name; topHotel.style.display=''; }
+  toast('⏳ Cargando datos de ' + h.name + '...');
+  await loadHotelData();
+  startRealtime();
   renderHotels();
   navTo('dashboard', document.getElementById('nav-dashboard'));
+  toast('✓ Ahora gestionando: ' + h.name);
+}
+
+// Carga solo los datos del hotel activo (usuarios, plantillas, incidencias, alarmas, checklists)
+async function loadHotelData(){
+  const hid = activeHotelId;
+  const today = new Date().toISOString().slice(0,10);
+  try {
+    const [users, templates, incidents, alarms, checklists] = await Promise.all([
+      SB.get('nh_users',     `?hotel_id=eq.${hid}&order=id`),
+      SB.get('nh_templates', `?hotel_id=eq.${hid}&order=id`),
+      SB.get('nh_incidents', `?hotel_id=eq.${hid}&order=id.desc`),
+      SB.get('nh_alarms',    `?hotel_id=eq.${hid}&order=id.desc`),
+      SB.get('nh_checklist', `?hotel_id=eq.${hid}&date=eq.${today}`),
+    ]);
+    if(users     && users.length)     USERS     = users.map(u=>({...u}));
+    else USERS = [];
+    if(templates && templates.length) TEMPLATES = templates.map(t=>({...t, items: Array.isArray(t.items)?t.items:JSON.parse(t.items||'[]')}));
+    else TEMPLATES = [];
+    if(incidents && incidents.length) INCIDENTS = incidents.map(i=>({...i, desc:i.description, by:i.created_by, at:i.created_at, assigned_to:i.assigned_to||'[]', history:Array.isArray(i.history)?i.history:JSON.parse(i.history||'[]')}));
+    else INCIDENTS = [];
+    if(alarms    && alarms.length)    ALARMS    = alarms.map(a=>({...a, time:a.alarm_time}));
+    else ALARMS = [];
+    CHK = {};
+    if(checklists) checklists.forEach(row=>{
+      const key=`${row.template_id}-${row.date}-${row.item_index}`;
+      CHK[key]={user:row.user_name, time:row.completed_at?new Date(row.completed_at).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}):'', dbId:row.id};
+    });
+    // Rebuild IDS counters
+    if(USERS.length)      IDS.user  = Math.max(...USERS.map(u=>u.id))+1;
+    if(INCIDENTS.length)  IDS.inc   = Math.max(...INCIDENTS.map(i=>i.id))+1;
+    if(ALARMS.length)     IDS.alarm = Math.max(...ALARMS.map(a=>a.id))+1;
+    if(TEMPLATES.length)  IDS.tpl   = Math.max(...TEMPLATES.map(t=>t.id))+1;
+    syncAlarmsToSW();
+  } catch(e){
+    console.warn('loadHotelData error:', e.message);
+  }
+  try { await loadNotes(); } catch(e){}
 }
 
 function openAddHotel(){
@@ -3217,6 +3249,192 @@ function onSwMessage(event){
 
 // Call registerServiceWorker after login (alarms are loaded by then)
 // Also re-sync whenever alarms are created or modified
+
+// ══════════════════════════════════════════════════════════════
+// REALTIME — sincronización instantánea entre dispositivos
+// ══════════════════════════════════════════════════════════════
+let realtimeWS = null;
+let realtimeChannels = [];
+let realtimeReconnectTimer = null;
+
+function startRealtime() {
+  if (realtimeWS) stopRealtime();
+
+  const wsUrl = SUPABASE_URL.replace('https://', 'wss://') + '/realtime/v1/websocket?apikey=' + SUPABASE_KEY + '&vsn=1.0.0';
+
+  try {
+    realtimeWS = new WebSocket(wsUrl);
+  } catch(e) {
+    console.warn('Realtime WebSocket failed:', e.message);
+    scheduleRealtimeReconnect();
+    return;
+  }
+
+  realtimeWS.onopen = () => {
+    console.log('🔴 Realtime conectado');
+    // Join channel for each table
+    const tables = ['nh_incidents','nh_checklist','nh_alarms','nh_users','nh_notes','nh_templates'];
+    tables.forEach((table, i) => {
+      const topic = `realtime:public:${table}`;
+      const joinMsg = {
+        topic,
+        event: 'phx_join',
+        payload: { config: { broadcast: { self: false }, presence: { key: '' }, postgres_changes: [{ event: '*', schema: 'public', table }] } },
+        ref: String(i + 1)
+      };
+      realtimeWS.send(JSON.stringify(joinMsg));
+    });
+    // Heartbeat every 25s
+    realtimeWS._hb = setInterval(() => {
+      if (realtimeWS && realtimeWS.readyState === WebSocket.OPEN) {
+        realtimeWS.send(JSON.stringify({ topic: 'phoenix', event: 'heartbeat', payload: {}, ref: null }));
+      }
+    }, 25000);
+  };
+
+  realtimeWS.onmessage = (evt) => {
+    try {
+      const msg = JSON.parse(evt.data);
+      if (msg.event === 'postgres_changes') {
+        const change = msg.payload?.data;
+        if (!change) return;
+        const table = change.table;
+        const type  = change.type; // INSERT / UPDATE / DELETE
+        const rec   = change.record || change.old_record || {};
+
+        // Ignore changes for other hotels
+        if (rec.hotel_id && rec.hotel_id !== activeHotelId) return;
+
+        handleRealtimeChange(table, type, rec, change);
+      }
+    } catch(e) {}
+  };
+
+  realtimeWS.onclose = (e) => {
+    console.warn('Realtime desconectado, reconectando...');
+    if (realtimeWS && realtimeWS._hb) clearInterval(realtimeWS._hb);
+    realtimeWS = null;
+    scheduleRealtimeReconnect();
+  };
+
+  realtimeWS.onerror = () => {
+    if (realtimeWS) realtimeWS.close();
+  };
+}
+
+function scheduleRealtimeReconnect() {
+  if (realtimeReconnectTimer) clearTimeout(realtimeReconnectTimer);
+  realtimeReconnectTimer = setTimeout(() => {
+    if (cu) startRealtime(); // solo reconectar si hay sesión activa
+  }, 5000);
+}
+
+function stopRealtime() {
+  if (realtimeReconnectTimer) clearTimeout(realtimeReconnectTimer);
+  if (realtimeWS) {
+    if (realtimeWS._hb) clearInterval(realtimeWS._hb);
+    realtimeWS.onclose = null; // evitar reconexión al hacer logout
+    realtimeWS.close();
+    realtimeWS = null;
+  }
+}
+
+// Indicador visual de sincronización
+let realtimeSyncTimer = null;
+function showSyncDot() {
+  let dot = document.getElementById('rt-sync-dot');
+  if (!dot) return;
+  dot.style.opacity = '1';
+  if (realtimeSyncTimer) clearTimeout(realtimeSyncTimer);
+  realtimeSyncTimer = setTimeout(() => { dot.style.opacity = '0'; }, 1500);
+}
+
+function handleRealtimeChange(table, type, rec, change) {
+  showSyncDot();
+  const today = new Date().toISOString().slice(0, 10);
+
+  if (table === 'nh_incidents') {
+    if (type === 'INSERT') {
+      const exists = INCIDENTS.find(i => i.id === rec.id);
+      if (!exists) {
+        INCIDENTS.unshift({ ...rec, desc: rec.description, by: rec.created_by, at: rec.created_at, assigned_to: rec.assigned_to || '[]', history: Array.isArray(rec.history) ? rec.history : JSON.parse(rec.history || '[]') });
+        toast('🔔 Nueva incidencia: ' + rec.title);
+      }
+    } else if (type === 'UPDATE') {
+      const idx = INCIDENTS.findIndex(i => i.id === rec.id);
+      if (idx >= 0) INCIDENTS[idx] = { ...INCIDENTS[idx], ...rec, desc: rec.description, by: rec.created_by, at: rec.created_at, assigned_to: rec.assigned_to || '[]', history: Array.isArray(rec.history) ? rec.history : JSON.parse(rec.history || '[]') };
+    } else if (type === 'DELETE') {
+      const old = change.old_record || {};
+      INCIDENTS = INCIDENTS.filter(i => i.id !== old.id);
+    }
+    renderIncidents();
+    renderDashboard();
+    buildNotifications(); updateBadges();
+
+  } else if (table === 'nh_checklist') {
+    if (type === 'INSERT' || type === 'UPDATE') {
+      if (rec.date === today) {
+        const key = `${rec.template_id}-${rec.date}-${rec.item_index}`;
+        CHK[key] = { user: rec.user_name, time: rec.completed_at ? new Date(rec.completed_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : '', dbId: rec.id };
+      }
+    } else if (type === 'DELETE') {
+      const old = change.old_record || {};
+      const key = `${old.template_id}-${old.date}-${old.item_index}`;
+      delete CHK[key];
+    }
+    renderChecklists();
+    renderDashboard();
+
+  } else if (table === 'nh_alarms') {
+    if (type === 'INSERT') {
+      const exists = ALARMS.find(a => a.id === rec.id);
+      if (!exists) ALARMS.unshift({ ...rec, time: rec.alarm_time });
+    } else if (type === 'UPDATE') {
+      const idx = ALARMS.findIndex(a => a.id === rec.id);
+      if (idx >= 0) ALARMS[idx] = { ...ALARMS[idx], ...rec, time: rec.alarm_time };
+    } else if (type === 'DELETE') {
+      const old = change.old_record || {};
+      ALARMS = ALARMS.filter(a => a.id !== old.id);
+    }
+    renderAlarms();
+    renderDashboard();
+    buildNotifications(); updateBadges();
+    syncAlarmsToSW();
+
+  } else if (table === 'nh_users') {
+    if (type === 'INSERT') {
+      const exists = USERS.find(u => u.id === rec.id);
+      if (!exists) USERS.push({ ...rec });
+    } else if (type === 'UPDATE') {
+      const idx = USERS.findIndex(u => u.id === rec.id);
+      if (idx >= 0) USERS[idx] = { ...USERS[idx], ...rec };
+    } else if (type === 'DELETE') {
+      const old = change.old_record || {};
+      USERS = USERS.filter(u => u.id !== old.id);
+    }
+    renderAdmin();
+    renderTeam();
+
+  } else if (table === 'nh_templates') {
+    if (type === 'INSERT') {
+      const exists = TEMPLATES.find(t => t.id === rec.id);
+      if (!exists) TEMPLATES.push({ ...rec, items: Array.isArray(rec.items) ? rec.items : JSON.parse(rec.items || '[]') });
+    } else if (type === 'UPDATE') {
+      const idx = TEMPLATES.findIndex(t => t.id === rec.id);
+      if (idx >= 0) TEMPLATES[idx] = { ...TEMPLATES[idx], ...rec, items: Array.isArray(rec.items) ? rec.items : JSON.parse(rec.items || '[]') };
+    } else if (type === 'DELETE') {
+      const old = change.old_record || {};
+      TEMPLATES = TEMPLATES.filter(t => t.id !== old.id);
+    }
+    renderChecklists();
+    renderAdmin();
+
+  } else if (table === 'nh_notes') {
+    // Reload notes silently
+    loadNotes().then(() => { if (document.getElementById('page-notes').classList.contains('active')) renderNotes(); });
+  }
+}
+
 </script>
 </body>
 </html>
