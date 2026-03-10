@@ -256,6 +256,7 @@ td { padding:13px 16px; font-size: 0.941rem; color:var(--ink); vertical-align:mi
   display:none; position:fixed; inset:0; z-index:9999;
   background:white; flex-direction:column;
   animation: noteFsIn 0.2s ease;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 #note-fullscreen-overlay.open { display:flex; }
 @keyframes noteFsIn { from{opacity:0;transform:scale(0.98)} to{opacity:1;transform:scale(1)} }
@@ -278,9 +279,13 @@ td { padding:13px 16px; font-size: 0.941rem; color:var(--ink); vertical-align:mi
   font-size:11px; color:var(--ink-muted); display:flex; justify-content:space-between; align-items:center;
 }
 @media(max-width:640px){
-  #note-fs-editor { padding:20px 18px; font-size:16px; line-height:1.9; }
-  #note-fs-toolbar { padding:8px 10px; gap:3px; }
-  #note-fs-toolbar .notepad-btn { min-width:32px; height:32px; padding:0 8px; font-size:14px; }
+  #note-fs-editor { padding:16px 16px; font-size:16px; line-height:1.9; -webkit-overflow-scrolling:touch; }
+  #note-fs-toolbar { padding:8px 8px; gap:2px; flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; }
+  #note-fs-toolbar::-webkit-scrollbar { display:none; }
+  #note-fs-toolbar .notepad-btn { min-width:30px; height:30px; padding:0 6px; font-size:13px; flex-shrink:0; }
+  #note-fs-toolbar > [style*="flex:1"] { min-width:8px; }
+  #note-fs-toolbar .btn { height:30px; padding:0 10px; font-size:12px; flex-shrink:0; white-space:nowrap; }
+  #note-fs-status { font-size:10px; padding:6px 12px; }
 }
 .notepad-editor:focus { border-color:var(--forest); }
 .notepad-dept-tabs { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px; }
@@ -352,8 +357,14 @@ td { padding:13px 16px; font-size: 0.941rem; color:var(--ink); vertical-align:mi
   .modal-box { max-width:100% !important; width:100%; border-radius:20px 20px 0 0; margin-top:auto; max-height:90vh; }
   .modal-head { padding:18px 18px 12px; }
   .modal-body { padding:14px 18px; }
-  .modal-foot { padding:12px 18px 24px; flex-direction:column; }
-  .modal-foot .btn { width:100%; justify-content:center; }
+  .modal-foot { padding:12px 16px 24px; flex-direction:row; flex-wrap:wrap; gap:8px; }
+  .modal-foot .btn { flex:1 1 auto; min-width:0; justify-content:center; font-size:0.82rem; padding:10px 10px; }
+  .modal-foot.col { flex-direction:column; }
+  .modal-foot.col .btn { width:100%; flex:unset; }
+  /* Incident detail footer: compact 2-col grid on mobile */
+  #detail-foot { display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:12px 16px 24px; border-top:1px solid var(--cream-dark); }
+  #detail-foot .btn { width:100%; font-size:0.8rem; padding:10px 8px; justify-content:center; text-align:center; gap:4px; }
+  #detail-foot .btn-close-full { grid-column:1/-1; }
 
   /* Notifications */
   .notif-dropdown { right:8px; left:8px; width:auto; }
@@ -2431,6 +2442,7 @@ function renderNotes(){
       lastSaved.textContent = note && note.updatedAt ? 'Último guardado: '+new Date(note.updatedAt).toLocaleString('es-ES') : 'Sin guardar aún';
       if(saveBtn) saveBtn.style.display = '';
       if(toolbar) toolbar.style.display = '';
+      if(expandBtnEmp) expandBtnEmp.style.display = '';
     }
   }
 }
@@ -4240,11 +4252,11 @@ function openIncidentDetail(id){
   const canEdit=cu.role==='SUPER_ADMIN'||(cu.role==='ADMIN'&&inc.dept===cu.dept)||inc.by==cu.id;
   const canDelete=cu.role==='SUPER_ADMIN'||(cu.role==='ADMIN'&&inc.dept===cu.dept);
   document.getElementById('detail-foot').innerHTML=`
-    <button class="btn btn-outline" onclick="closeModal('modal-inc-detail')">Cerrar</button>
-    ${canDelete?`<button class="btn btn-red btn-sm" onclick="deleteIncident(${inc.id})" style="margin-right:auto">🗑 Eliminar</button>`:''}
+    <button class="btn btn-outline btn-close-full" onclick="closeModal('modal-inc-detail')">Cerrar</button>
     ${canEdit&&inc.status!=='RESUELTA'?`<button class="btn btn-amber" onclick="quickStatus(${inc.id},'EN_PROCESO');closeModal('modal-inc-detail')">→ En Proceso</button>`:''}
     ${canEdit&&inc.status!=='RESUELTA'?`<button class="btn btn-green" onclick="quickStatus(${inc.id},'RESUELTA');closeModal('modal-inc-detail')"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><polyline points="20 6 9 17 4 12"/></svg> Resolver</button>`:''}
-    ${canEdit?`<button class="btn btn-outline" onclick="editIncident(${inc.id})"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Editar</button>`:''}`;
+    ${canEdit?`<button class="btn btn-outline" onclick="editIncident(${inc.id})"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Editar</button>`:''}
+    ${canDelete?`<button class="btn btn-red" onclick="deleteIncident(${inc.id})">🗑 Eliminar</button>`:''}`;
   openModal('modal-inc-detail');
 }
 
