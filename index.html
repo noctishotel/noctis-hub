@@ -1067,7 +1067,9 @@ WHERE id NOT IN (
           <button class="notepad-btn" onclick="noteCmd('undo')" title="Deshacer" style="width:30px;height:30px">↩</button>
           <button class="notepad-btn" onclick="noteCmd('removeFormat')" title="Quitar formato" style="width:30px;height:30px;font-size:14px">✕</button>
         </div>
-                <!-- Editor — lined notebook background -->
+                <!-- Vista SA: lista de notas por empleado (solo lectura) -->
+        <div id="notes-sa-view" style="display:none;flex:1;overflow-y:auto;padding:20px 28px"></div>
+        <!-- Editor empleado -->
         <div class="notepad-editor" id="notepad-editor" contenteditable="true" spellcheck="true" oninput="onNoteInput()" style="flex:1;min-height:500px;padding:28px 40px;font-size:16px;line-height:2;outline:none;background:white;font-family:'Georgia',serif;color:#1a1208;border:none"></div>
         <div style="padding:8px 20px 10px;display:flex;justify-content:space-between;align-items:center;background:#fafaf7;border-top:1px solid var(--border)">
           <span class="notepad-saved" id="notepad-saved">✓ Guardado</span>
@@ -2076,30 +2078,32 @@ function renderNotes(){
   const tabs = document.getElementById('notes-dept-tabs');
   const allDepts = ['Recepción','Housekeeping','Mantenimiento','F&B','Administración','Dirección'];
   const D_LABELS = {Recepción:'🛎️',Housekeeping:'🛏️',Mantenimiento:'🔧','F&B':'☕',Administración:'📁',Dirección:'🏠'};
+  const saView = document.getElementById('notes-sa-view');
+  const editor = document.getElementById('notepad-editor');
+  const toolbar = document.getElementById('notepad-toolbar-wrap');
+  const lastSaved = document.getElementById('notepad-last-saved');
 
   if(isS){
-    // SA: tabs = departments, inside shows each user's note for that dept
-    subtitle.textContent = 'Notas privadas de cada empleado — solo lectura para Super Admin';
+    // SA mode: show sa-view, hide editor and toolbar
+    saView.style.display = 'block';
+    editor.style.display = 'none';
+    if(toolbar) toolbar.style.display = 'none';
+    lastSaved.textContent = '';
+
+    subtitle.textContent = 'Notas privadas de cada empleado — solo lectura';
     if(!notesDept || !allDepts.includes(notesDept)) notesDept = allDepts[0];
     tabs.innerHTML = '';
     allDepts.forEach(function(d){
       const btn = document.createElement('div');
       btn.className = 'chip' + (notesDept===d ? ' active' : '');
       btn.textContent = (D_LABELS[d]||'📝') + ' ' + d;
-      btn.addEventListener('click', function(){ switchNotesDept(d); });
+      btn.addEventListener('click', function(){ notesDept=d; renderNotes(); });
       tabs.appendChild(btn);
     });
 
-    // Show all users from this dept with their notes
-    const editor = document.getElementById('notepad-editor');
-    const lastSaved = document.getElementById('notepad-last-saved');
-    const toolbar = document.getElementById('notepad-toolbar-wrap');
-    if(toolbar) toolbar.style.display = 'none'; // SA can't edit others' notes
-
     const usersInDept = USERS.filter(u => u.dept === notesDept);
     if(!usersInDept.length){
-      editor.innerHTML = `<div style="color:var(--ink-muted);font-style:italic;padding:12px 0">Sin empleados en este departamento</div>`;
-      lastSaved.textContent = '';
+      saView.innerHTML = `<div style="color:var(--ink-muted);font-style:italic;padding:20px 0">Sin empleados en este departamento</div>`;
       return;
     }
 
@@ -2112,40 +2116,37 @@ function renderNotes(){
       const safeName = u.name.replace(/'/g,"\\'");
       html += `<div style="margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--cream-dark)">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-          <div style="width:32px;height:32px;border-radius:50%;background:${D_COLORS[u.dept]||'#2e4a1e'};display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:0.85rem;flex-shrink:0">${u.name[0]}</div>
-          <div style="flex:1">
+          <div style="width:34px;height:34px;border-radius:50%;background:${D_COLORS[u.dept]||'#2e4a1e'};display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:0.85rem;flex-shrink:0">${u.name[0]}</div>
+          <div style="flex:1;min-width:0">
             <div style="font-weight:600;font-size:0.9rem">${u.name}</div>
             <div style="font-size:0.72rem;color:var(--ink-muted)">${note && note.updatedAt ? 'Actualizado: '+new Date(note.updatedAt).toLocaleString('es-ES') : 'Sin notas aún'}</div>
           </div>
-          ${hasNote ? `<button class="btn btn-outline btn-sm" onclick="openNoteModal('${safeKey}','${safeName}')" style="flex-shrink:0">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
-            Abrir
+          ${hasNote ? `<button class="btn btn-outline btn-sm" onclick="openNoteModal('${safeKey}','${safeName}')" style="flex-shrink:0;gap:5px">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg> Abrir
           </button>` : ''}
         </div>
         ${hasNote
-          ? `<div style="font-size:0.85rem;line-height:1.7;background:var(--cream);border-radius:8px;padding:12px 14px;max-height:120px;overflow:hidden;position:relative">
+          ? `<div style="font-size:0.85rem;line-height:1.7;background:var(--cream);border-radius:8px;padding:12px 14px;max-height:100px;overflow:hidden;position:relative;pointer-events:none;user-select:none">
               ${note.content}
-              <div style="position:absolute;bottom:0;left:0;right:0;height:40px;background:linear-gradient(transparent,var(--cream));border-radius:0 0 8px 8px"></div>
+              <div style="position:absolute;bottom:0;left:0;right:0;height:36px;background:linear-gradient(transparent,var(--cream));border-radius:0 0 8px 8px;pointer-events:none"></div>
             </div>`
-          : `<div style="font-size:0.82rem;color:var(--ink-muted);font-style:italic;padding:8px 0">Este empleado no ha escrito ninguna nota</div>`
+          : `<div style="font-size:0.82rem;color:var(--ink-muted);font-style:italic;padding:4px 0">Este empleado no ha escrito ninguna nota</div>`
         }
       </div>`;
     });
-    editor.innerHTML = html;
-    lastSaved.textContent = '';
+    saView.innerHTML = html;
 
   } else {
-    // Employee: sees only their own note
-    subtitle.textContent = 'Tu bloc de notas personal — solo tú y el Super Admin pueden verlo';
-    tabs.innerHTML = ''; // no tabs for employees
-    const toolbar = document.getElementById('notepad-toolbar-wrap');
+    // Employee mode: show editor, hide sa-view
+    saView.style.display = 'none';
+    editor.style.display = '';
     if(toolbar) toolbar.style.display = '';
 
+    subtitle.textContent = 'Tu bloc de notas personal — solo tú y el Super Admin pueden verlo';
+    tabs.innerHTML = '';
     notesDept = cu.dept;
     const noteKey = cu.dept + ':' + cu.id;
     const note = NOTES[noteKey];
-    const editor = document.getElementById('notepad-editor');
-    const lastSaved = document.getElementById('notepad-last-saved');
     editor.innerHTML = note ? note.content : '';
     lastSaved.textContent = note && note.updatedAt ? 'Último guardado: '+new Date(note.updatedAt).toLocaleString('es-ES') : 'Sin guardar aún';
     editor.setAttribute('contenteditable','true');
