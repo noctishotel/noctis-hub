@@ -729,7 +729,12 @@ input, select, textarea { max-width:100%; }
 
     <!-- ── REPORTS ── -->
     <div class="page" id="page-reports">
-      <div class="page-header"><div><div class="page-title">Informes</div><div class="page-subtitle">Descarga y exporta datos para dirección</div></div></div>
+      <div class="page-header"><div><div class="page-title">Informes</div><div class="page-subtitle">Descarga y exporta datos para dirección</div></div>
+        <button class="btn btn-outline btn-sm" onclick="refreshReportData()" id="btn-refresh-report" title="Recargar datos de Supabase">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg> Recargar datos
+        </button>
+      </div>
+      <div id="report-live-stats" style="margin-bottom:16px"></div>
 
       <!-- Period selector -->
       <div class="card" style="margin-bottom:22px">
@@ -1600,7 +1605,7 @@ function navTo(page,el){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById('page-'+page).classList.add('active');
   closeSidebar();
-  const renders={dashboard:renderDashboard,checklists:renderChecklists,incidents:renderIncidents,alarms:renderAlarms,team:renderTeam,reports:()=>{},admin:renderAdmin,hotels:renderHotels,archive:renderArchive,notes:function(){ loadNotes().then(function(){ renderNotes(); }); }};
+  const renders={dashboard:renderDashboard,checklists:renderChecklists,incidents:renderIncidents,alarms:renderAlarms,team:renderTeam,reports:function(){ renderReportStats(); },admin:renderAdmin,hotels:renderHotels,archive:renderArchive,notes:function(){ loadNotes().then(function(){ renderNotes(); }); }};
   if(renders[page])renders[page]();
 }
 
@@ -1831,6 +1836,11 @@ function renderChkCard(t,today){
     </div>`;
   }).join('');
 
+  const chkNoteKey = `chk:${t.id}:${chkDate}`;
+  const chkNote = NOTES[chkNoteKey];
+  const chkNoteText = chkNote && chkNote.content ? chkNote.content : '';
+  const canNote = isS || isA || (cu.dept === t.dept);
+
   return `<div class="card">
     <div class="card-header">
       <div><div class="card-title">${t.name}</div><div style="font-size:11px;color:var(--ink-muted);margin-top:3px">${t.shift} · ${done}/${realItems.length} completados</div></div>
@@ -1843,6 +1853,23 @@ function renderChkCard(t,today){
     <div class="card-body" style="padding-top:6px">
       <div class="progress-bg" style="margin-bottom:14px"><div class="progress-fill" style="width:${pct}%"></div></div>
       ${items}
+      <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--cream-dark)">
+        <div style="font-size:0.72rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-muted);margin-bottom:6px">📝 Nota del turno</div>
+        ${canNote
+          ? `<div style="display:flex;gap:8px;align-items:flex-start">
+              <textarea id="chknote-${t.id}" rows="2" placeholder="Añade una nota o comentario para este turno…"
+                style="flex:1;resize:vertical;padding:8px 10px;font-size:0.82rem;line-height:1.5;border:1px solid var(--border);border-radius:8px;background:white;color:var(--ink);font-family:inherit;outline:none"
+                onfocus="this.style.borderColor='var(--forest)'" onblur="this.style.borderColor='var(--border)'"
+              >${chkNoteText}</textarea>
+              <button class="btn btn-outline btn-sm" style="white-space:nowrap;flex-shrink:0" onclick="saveChkNote(${t.id},'${chkDate}')">💾 Guardar</button>
+            </div>
+            ${chkNote && chkNote.updatedAt ? `<div style="font-size:0.7rem;color:var(--ink-muted);margin-top:4px">Última nota: ${new Date(chkNote.updatedAt).toLocaleString('es-ES')} · ${chkNote.author||''}</div>` : ''}`
+          : (chkNoteText
+              ? `<div style="font-size:0.82rem;line-height:1.5;color:var(--ink);background:var(--cream);border-radius:8px;padding:8px 10px">${chkNoteText}</div>
+                 ${chkNote && chkNote.updatedAt ? `<div style="font-size:0.7rem;color:var(--ink-muted);margin-top:4px">${new Date(chkNote.updatedAt).toLocaleString('es-ES')} · ${chkNote.author||''}</div>` : ''}`
+              : `<div style="font-size:0.82rem;color:var(--ink-muted);font-style:italic">Sin notas para este turno</div>`)
+        }
+      </div>
     </div>
   </div>`;
 }
@@ -1853,9 +1880,9 @@ async function toggleChk(ck){
   const tplId=m[1], date=m[2], idx=parseInt(m[3]);
   const tpl=TEMPLATES.find(t=>String(t.id)===tplId);
   if(tpl && cu.role!=='SUPER_ADMIN' && tpl.dept!==cu.dept){toast('✗ No puedes modificar checklists de otro departamento');return;}
-  // If already checked and not superadmin → locked
-  if(CHK[ck] && cu.role!=='SUPER_ADMIN'){
-    toast('✗ Esta tarea ya está completada. Solo el Super Admin puede desmarcarla.');
+  // If already checked by another user and current user is employee → locked
+  if(CHK[ck] && cu.role==='EMPLOYEE' && CHK[ck].user !== cu.name){
+    toast('✗ Esta tarea fue completada por '+CHK[ck].user+'. Solo un Admin puede desmarcarla.');
     return;
   }
   if(CHK[ck]){
@@ -1870,6 +1897,26 @@ async function toggleChk(ck){
     }catch(e){}
   }
   saveArchiveSnapshot();
+  renderChecklists();
+}
+
+async function saveChkNote(tplId, date){
+  const el = document.getElementById('chknote-'+tplId);
+  if(!el) return;
+  const key = `chk:${tplId}:${date}`;
+  const content = el.value.trim();
+  if(!content){
+    // Delete note if empty
+    try{
+      const enc = encodeURIComponent(key);
+      await SB.delete('nh_notes', `?dept=eq.${enc}&hotel_id=eq.${activeHotelId}`);
+      delete NOTES[key];
+    }catch(e){}
+    toast('✓ Nota eliminada');
+  } else {
+    await persistNote(key, content, cu.name);
+    toast('✓ Nota del turno guardada');
+  }
   renderChecklists();
 }
 
@@ -2091,29 +2138,30 @@ async function loadNotes(){
   try{
     const rows = await SB.get('nh_notes', `?hotel_id=eq.${activeHotelId}`);
     NOTES = {};
-    (rows||[]).forEach(r=>{ NOTES[r.dept]={content:r.content,updatedAt:r.updated_at}; });
+    (rows||[]).forEach(r=>{ NOTES[r.dept]={content:r.content,updatedAt:r.updated_at,author:r.author||''}; });
   }catch(e){
     // fallback: no hotel_id column yet
     try {
       const rows = await SB.get('nh_notes','');
       NOTES = {};
-      (rows||[]).forEach(r=>{ NOTES[r.dept]={content:r.content,updatedAt:r.updated_at}; });
+      (rows||[]).forEach(r=>{ NOTES[r.dept]={content:r.content,updatedAt:r.updated_at,author:r.author||''}; });
     }catch(e2){}
   }
 }
 
 // ── NOTES HELPERS ──────────────────────────────────────────────
-async function persistNote(key, content){
+async function persistNote(key, content, author){
   try{
     const enc = encodeURIComponent(key);
     const existing = await SB.get('nh_notes', `?dept=eq.${enc}&hotel_id=eq.${activeHotelId}`);
     const body = {dept:key, content:content, updated_at:new Date().toISOString(), hotel_id:activeHotelId};
+    if(author) body.author = author;
     if(existing && existing.length > 0){
       await SB.patch('nh_notes', `?dept=eq.${enc}&hotel_id=eq.${activeHotelId}`, body);
     } else {
       await SB.post('nh_notes', body);
     }
-    NOTES[key] = {content:content, updatedAt: new Date().toISOString()};
+    NOTES[key] = {content:content, updatedAt: new Date().toISOString(), author: author||''};
   }catch(e){ console.warn('Notes save error:', e); }
 }
 
@@ -2174,7 +2222,7 @@ function renderNotes(){
       if(!usersInDept.length){ saView.innerHTML = `<div style="color:var(--ink-muted);font-style:italic;padding:20px 0">Sin empleados en este departamento</div>`; return; }
       let html = '';
       usersInDept.forEach(function(u){
-        const key = u.dept+':'+u.id;
+        const key = u.role==='SUPER_ADMIN' ? 'SA' : u.dept+':'+u.id;
         const note = NOTES[key];
         const hasNote = note && note.content && note.content.replace(/<[^>]*>/g,'').trim();
         const safeKey = key.replace(/'/g,"\\'");
@@ -3240,6 +3288,38 @@ function stopConfigRefresh(){
 // ══════════════════════════════════════════════════════════════
 let reportPeriod='hoy';
 
+async function refreshReportData(){
+  const btn = document.getElementById('btn-refresh-report');
+  if(btn){ btn.disabled=true; btn.innerHTML = '⏳ Cargando...'; }
+  try {
+    await loadHotelData();
+    renderReportStats();
+    toast('✓ Datos actualizados — '+INCIDENTS.length+' incidencias cargadas');
+  } catch(e){
+    toast('✗ Error al cargar datos: '+e.message);
+  }
+  if(btn){ btn.disabled=false; btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg> Recargar datos'; }
+}
+
+function renderReportStats(){
+  const el = document.getElementById('report-live-stats');
+  if(!el) return;
+  const total = INCIDENTS.length;
+  const abiertas = INCIDENTS.filter(i=>i.status==='ABIERTA').length;
+  const enProceso = INCIDENTS.filter(i=>i.status==='EN_PROCESO').length;
+  const resueltas = INCIDENTS.filter(i=>i.status==='RESUELTA').length;
+  const criticas = INCIDENTS.filter(i=>i.prio==='CRITICA'&&i.status!=='RESUELTA').length;
+  if(!total){ el.innerHTML = `<div style="background:#fdf6e8;border:1px solid #e8d5a0;border-radius:10px;padding:12px 16px;font-size:0.82rem;color:#7a4a0a">⚠️ No hay incidencias cargadas en memoria. Pulsa <strong>Recargar datos</strong> para obtener los datos actuales de Supabase.</div>`; return; }
+  el.innerHTML = `<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;background:var(--cream);border:1px solid var(--border);border-radius:10px;padding:10px 16px;font-size:0.82rem">
+    <span style="color:var(--ink-muted);font-weight:600">Datos en memoria:</span>
+    <span class="badge badge-gray">${total} incidencias total</span>
+    <span class="badge badge-red" style="background:#fdf0f0;color:#8b1a1a">${abiertas} abiertas</span>
+    <span class="badge badge-amber">${enProceso} en proceso</span>
+    <span class="badge badge-green">${resueltas} resueltas</span>
+    ${criticas?`<span class="badge" style="background:#8b1a1a;color:white">⚠ ${criticas} críticas</span>`:''}
+  </div>`;
+}
+
 function setReportPeriod(p,el){
   reportPeriod=p;
   document.querySelectorAll('.chip[id^="rp-"]').forEach(c=>c.classList.remove('active'));
@@ -3307,7 +3387,21 @@ function downloadSheets(rows, headers, filename){
   }, 500);
 }
 
-function downloadReport(type,format){
+async function downloadReport(type,format){
+  // Cargar incidencias frescas de Supabase antes de generar
+  try {
+    const freshInc = await SB.get('nh_incidents', `?hotel_id=eq.${activeHotelId}&order=created_at.desc`);
+    if(freshInc && freshInc.length > 0){
+      INCIDENTS = freshInc.map(r=>({
+        id:r.id, title:r.title, dept:r.dept, prio:r.priority||r.prio||'MEDIA',
+        status:r.status, at:r.created_at||r.at, updated_at:r.updated_at,
+        by:r.created_by||r.by, desc:r.description||r.desc||'',
+        assigned_to:r.assigned_to||'[]',
+        history:r.history ? (typeof r.history==='string'?JSON.parse(r.history):r.history) : []
+      }));
+    }
+  } catch(e){ /* usar datos en memoria si falla */ }
+
   const {from,to,label}=getReportDateRange();
   const hotelName=(document.getElementById('cfg-hotel')||{}).value||'Noctis Hotel';
   const generado=new Date().toLocaleString('es-ES');
