@@ -1005,7 +1005,7 @@ WHERE id NOT IN (
       <div id="notes-dept-tabs" class="notepad-dept-tabs"></div>
       <div style="background:white;border:1px solid var(--border);border-radius:12px;overflow:hidden;min-height:calc(100vh - 280px);display:flex;flex-direction:column;box-shadow:0 4px 24px rgba(0,0,0,0.08)">
         <!-- Toolbar — compact dropdown -->
-        <div id="notepad-toolbar-wrap" id="notepad-toolbar" style="padding:8px 14px;border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;gap:5px;align-items:center;background:#fafaf7;position:sticky;top:0;z-index:10">
+        <div id="notepad-toolbar-wrap" style="padding:8px 14px;border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;gap:5px;align-items:center;background:#fafaf7;position:sticky;top:0;z-index:10">
           <!-- Format buttons -->
           <button class="notepad-btn" onclick="noteCmd('bold')" title="Negrita" style="font-weight:800;min-width:30px;height:30px;padding:0 8px"><b>B</b></button>
           <button class="notepad-btn" onclick="noteCmd('italic')" title="Cursiva" style="min-width:30px;height:30px;padding:0 8px"><i>I</i></button>
@@ -2041,10 +2041,17 @@ let _noteAutoSave = null;
 
 async function loadNotes(){
   try{
-    const rows = await SB.get('nh_notes','');
+    const rows = await SB.get('nh_notes', `?hotel_id=eq.${activeHotelId}`);
     NOTES = {};
     (rows||[]).forEach(r=>{ NOTES[r.dept]={content:r.content,updatedAt:r.updated_at}; });
-  }catch(e){}
+  }catch(e){
+    // fallback: no hotel_id column yet
+    try {
+      const rows = await SB.get('nh_notes','');
+      NOTES = {};
+      (rows||[]).forEach(r=>{ NOTES[r.dept]={content:r.content,updatedAt:r.updated_at}; });
+    }catch(e2){}
+  }
 }
 
 function renderNotes(){
@@ -2177,7 +2184,14 @@ async function saveNote(silent){
   const noteKey = cu.dept + ':' + cu.id;  // always per-user key
   NOTES[noteKey] = {content:noteContent, updatedAt: new Date().toISOString()};
   try{
-    await SB.upsert('nh_notes', {dept:noteKey, content:noteContent, updated_at:new Date().toISOString()});
+    // Check if row exists first, then PATCH or POST
+    const existing = await SB.get('nh_notes', `?dept=eq.${encodeURIComponent(noteKey)}&hotel_id=eq.${activeHotelId}`);
+    const body = {dept:noteKey, content:noteContent, updated_at:new Date().toISOString(), hotel_id:activeHotelId};
+    if(existing && existing.length > 0){
+      await SB.patch('nh_notes', `?dept=eq.${encodeURIComponent(noteKey)}&hotel_id=eq.${activeHotelId}`, body);
+    } else {
+      await SB.post('nh_notes', body);
+    }
   }catch(e){ console.warn('Notes save error:', e); }
   const savedEl = document.getElementById('notepad-saved');
   const lastSaved = document.getElementById('notepad-last-saved');
