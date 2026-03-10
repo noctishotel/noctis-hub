@@ -1191,7 +1191,7 @@ WHERE id NOT IN (
     </div>
     <div class="modal-foot">
       <button class="btn btn-outline" onclick="closeModal('modal-user')">Cancelar</button>
-      <button class="btn btn-green" onclick="saveUser()">Guardar</button>
+      <button class="btn btn-green" id="btn-save-user" onclick="saveUserWithFeedback()">Guardar</button>
     </div>
   </div>
 </div>
@@ -1397,7 +1397,32 @@ async function doLogin(userObj){
     }
 
     if (!u) {
-      const emailExists = USERS.find(function(x){ return x.email.toLowerCase()===email; });
+      // Try searching across ALL hotels — same person can work in multiple hotels
+      try {
+        const allUsers = await SB.get('nh_users', `?email=eq.${encodeURIComponent(email)}&active=eq.true`);
+        if(allUsers && allUsers.length > 0){
+          // First try: match pwd in current hotel
+          const matchCurrent = allUsers.find(x => x.hotel_id===activeHotelId && (x.pwd||'').trim()===pwd);
+          // Second try: match pwd in any hotel
+          const matchAny = allUsers.find(x => (x.pwd||'').trim()===pwd);
+          const match = matchCurrent || matchAny;
+          if(match){
+            u = {...match};
+            // Switch to matched user's hotel automatically
+            if(match.hotel_id && match.hotel_id !== activeHotelId){
+              activeHotelId = match.hotel_id;
+              const hData = await SB.get('nh_hotels', `?id=eq.${match.hotel_id}`);
+              if(hData && hData[0]) activeHotelName = hData[0].name;
+            }
+          } else if(allUsers.some(x => x.email.toLowerCase()===email)){
+            alert('Contraseña incorrecta para este usuario');
+            return;
+          }
+        }
+      } catch(searchErr){ /* ignore, fall through */ }
+    }
+    if (!u) {
+      const emailExists = USERS.find(function(x){ return x.email && x.email.toLowerCase()===email; });
       if(emailExists && !emailExists.pwd) {
         alert('Este usuario no tiene contraseña configurada. Contacta al administrador.');
       } else if(USERS.length===0){
@@ -2687,12 +2712,22 @@ function renderTeam(){
 
 function setTeamDept(d,el){teamDeptFilter=d;document.querySelectorAll('#team-chips .chip').forEach(c=>c.classList.remove('active'));el.classList.add('active');renderTeam();}
 
+async function saveUserWithFeedback(){
+  const btn = document.getElementById('btn-save-user');
+  if(btn){ btn.disabled=true; btn.textContent='⏳ Guardando...'; }
+  try { await saveUser(); } finally {
+    if(btn){ btn.disabled=false; btn.textContent='Guardar'; }
+  }
+}
+
 function openAddUser(){
   document.getElementById('uf-id').value='';
   document.getElementById('uf-name').value='';
   document.getElementById('uf-email').value='';
   document.getElementById('uf-pwd').value='';
   document.getElementById('uf-role').value='EMPLOYEE';
+  const deptSel0=document.getElementById('uf-dept');
+  if(deptSel0 && deptSel0.options.length) deptSel0.selectedIndex=0;
   document.getElementById('modal-user-title').textContent='Nuevo Usuario';
   document.getElementById('pwd-optional').style.display='none';
   // Lock dept for ADMIN and hide SUPER_ADMIN option
@@ -2734,7 +2769,7 @@ function editUser(id){
 async function saveUser(){
   const id=parseInt(document.getElementById('uf-id').value)||0;
   const name=document.getElementById('uf-name').value.trim();
-  const email=document.getElementById('uf-email').value.trim();
+  const email=document.getElementById('uf-email').value.trim().toLowerCase();
   const dept=document.getElementById('uf-dept').value;
   const role=document.getElementById('uf-role').value;
   const pwd=document.getElementById('uf-pwd').value.trim();
@@ -2743,22 +2778,48 @@ async function saveUser(){
   if(cu.role==='ADMIN' && role==='SUPER_ADMIN'){toast('✗ No tienes permiso para asignar el rol de Super Admin');return;}
   // ADMIN can only manage users in their own department
   if(cu.role==='ADMIN' && dept !== cu.dept){toast('✗ Solo puedes gestionar usuarios de tu departamento');return;}
+  // Check for duplicate email only within the SAME hotel
+  const emailExists = USERS.find(u => u.email && u.email.toLowerCase()===email && u.id!==id && u.hotel_id===activeHotelId);
+  if(emailExists){toast('✗ Ya existe un usuario con ese email en este hotel: '+emailExists.name);return;}
   if(id){
     const u=USERS.find(x=>x.id===id);if(!u)return;
     const upd={name,email,dept,role};
     if(pwd) upd.pwd=pwd;
-    try{await SB.patch('nh_users','?id=eq.'+id,upd);Object.assign(u,upd);}
-    catch(e){toast('✗ Error Supabase');return;}
+    try{
+      await SB.patch('nh_users','?id=eq.'+id,upd);
+      Object.assign(u,upd);
+    }catch(e){
+      const msg=e.message||'';
+      if(msg.includes('duplicate')||msg.includes('unique')){toast('✗ Ese email ya está en uso');}
+      else{toast('✗ Error al guardar: '+(msg.slice(0,80)||'Supabase'));}
+      return;
+    }
     toast('✓ Usuario actualizado');
   }else{
-    if(!pwd){toast('✗ La contraseña es obligatoria');return;}
-    const newU={name,email,dept,role,pwd,active:true,id:IDS.user++};
+    if(!pwd){toast('✗ La contraseña es obligatoria para nuevos usuarios');return;}
+    if(pwd.length < 4){toast('✗ La contraseña debe tener al menos 4 caracteres');return;}
+    const newU={name,email,dept,role,pwd,active:true,hotel_id:activeHotelId,id:IDS.user++};
     try{
-      const[saved]=await SB.post('nh_users',{hotel_id:activeHotelId,name,email,dept,role,pwd,active:true});
-      if(saved) newU.id=saved.id;
-    }catch(e){toast('✗ Error Supabase');return;}
+      const result=await SB.post('nh_users',{hotel_id:activeHotelId,name,email,dept,role,pwd,active:true});
+      const saved=Array.isArray(result)?result[0]:result;
+      if(saved && saved.id) newU.id=saved.id;
+    }catch(e){
+      const msg=(e.message||'').toLowerCase();
+      if(msg.includes('duplicate')||msg.includes('unique')||msg.includes('23505')){
+        // This happens if Supabase has a global UNIQUE on email — needs to be UNIQUE(hotel_id,email)
+        toast('✗ Email duplicado en BD. Ve a Supabase → nh_users → elimina el índice único de "email" y crea uno en (hotel_id, email)');
+      } else if(msg.includes('hotel_id')||msg.includes('foreign')){
+        toast('✗ Error de hotel. Recarga la página e intenta de nuevo.');
+      } else if(msg.includes('null')&&msg.includes('hotel')){
+        toast('✗ Error: no hay hotel activo. Ve a Hoteles y selecciona uno.');
+      } else {
+        toast('✗ Error al crear usuario: '+(e.message||'').slice(0,100)||'Error de conexión');
+      }
+      console.error('saveUser error:', e.message||e);
+      return;
+    }
     USERS.push(newU);
-    toast('✓ Usuario creado');
+    toast('✓ Usuario '+name+' creado correctamente');
   }
   closeModal('modal-user');renderAdmin();renderTeam();
 }
@@ -3158,15 +3219,22 @@ async function switchToHotel(id){
   if(!confirm(`¿Cambiar al hotel "${h.name}"?\n\nSe cargarán los empleados, checklists e incidencias de ese hotel.`)) return;
   activeHotelId = id;
   activeHotelName = h.name;
-  // Update topbar hotel indicator
+  // Update topbar
   const topHotel = document.getElementById('top-hotel');
-  if(topHotel){ topHotel.textContent = '🏨 '+h.name; topHotel.style.display=''; }
+  if(topHotel){ topHotel.textContent = h.name; topHotel.style.display=''; }
   toast('⏳ Cargando datos de ' + h.name + '...');
-  await loadHotelData();
-  startRealtime();
-  renderHotels();
-  navTo('dashboard', document.getElementById('nav-dashboard'));
-  toast('✓ Ahora gestionando: ' + h.name);
+  try {
+    await loadHotelData();
+    await loadNotes();
+    applyConfigFromDB && await applyConfigFromDB();
+    startRealtime();
+    renderHotels();
+    populateSelects();
+    navTo('dashboard', document.getElementById('nav-dashboard'));
+    toast('✓ Ahora gestionando: ' + h.name);
+  } catch(e) {
+    toast('✗ Error al cargar hotel: '+(e.message||e));
+  }
 }
 
 // Carga solo los datos del hotel activo (usuarios, plantillas, incidencias, alarmas, checklists)
