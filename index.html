@@ -572,7 +572,7 @@ td { padding:13px 16px; font-size: 0.941rem; color:var(--ink); vertical-align:mi
         <div><div class="page-title">Incidencias</div><div class="page-subtitle">Gestión y seguimiento de incidencias</div></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button class="btn btn-outline" onclick="downloadReport('incidencias','csv')" title="Exportar listado"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#2e4a1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg> CSV</button>
-              <button class="btn btn-outline" onclick="downloadReport('incidencias','excel')" style="border-color:#217346;color:#217346">📊 Excel</button>
+              <button class="btn btn-outline" onclick="downloadReport('incidencias','sheets')" style="border-color:#0f9d58;color:#0f9d58">📊 Google Sheets</button>
           <button class="btn btn-outline" onclick="downloadReport('incidencias','pdf')" title="Descargar PDF"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#2e4a1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> PDF</button>
           <button class="btn btn-green" onclick="openNewIncident()">+ Nueva Incidencia</button>
         </div>
@@ -640,7 +640,7 @@ td { padding:13px 16px; font-size: 0.941rem; color:var(--ink); vertical-align:mi
             <div style="display:flex;gap:8px;flex-wrap:wrap">
               <button class="btn btn-green" onclick="downloadReport('checklists','pdf')"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#2e4a1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Descargar PDF</button>
               <button class="btn btn-outline" onclick="downloadReport('checklists','csv')"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#2e4a1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg> Exportar CSV</button>
-              <button class="btn btn-outline" onclick="downloadReport('checklists','excel')" style="border-color:#217346;color:#217346">📊 Excel</button>
+              <button class="btn btn-outline" onclick="downloadReport('checklists','sheets')" style="border-color:#0f9d58;color:#0f9d58">📊 Google Sheets</button>
             </div>
           </div>
         </div>
@@ -652,7 +652,7 @@ td { padding:13px 16px; font-size: 0.941rem; color:var(--ink); vertical-align:mi
             <div style="display:flex;gap:8px;flex-wrap:wrap">
               <button class="btn btn-green" onclick="downloadReport('incidencias','pdf')"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#2e4a1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Descargar PDF</button>
               <button class="btn btn-outline" onclick="downloadReport('incidencias','csv')"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#2e4a1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg> Exportar CSV</button>
-              <button class="btn btn-outline" onclick="exportToSheets('incidencias')" style="border-color:#0f9d58;color:#0f9d58"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#0f9d58" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><circle cx="12" cy="12" r="9"/></svg> Google Sheets</button>
+              <button class="btn btn-outline" onclick="downloadReport('incidencias','sheets')" style="border-color:#0f9d58;color:#0f9d58">📊 Google Sheets</button>
             </div>
           </div>
         </div>
@@ -664,7 +664,7 @@ td { padding:13px 16px; font-size: 0.941rem; color:var(--ink); vertical-align:mi
             <div style="display:flex;gap:8px;flex-wrap:wrap">
               <button class="btn btn-green" onclick="downloadReport('empleados','pdf')"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#2e4a1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Descargar PDF</button>
               <button class="btn btn-outline" onclick="downloadReport('empleados','csv')"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#2e4a1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg> Exportar CSV</button>
-              <button class="btn btn-outline" onclick="downloadReport('empleados','excel')" style="border-color:#217346;color:#217346">📊 Excel</button>
+              <button class="btn btn-outline" onclick="downloadReport('empleados','sheets')" style="border-color:#0f9d58;color:#0f9d58">📊 Google Sheets</button>
             </div>
           </div>
         </div>
@@ -676,8 +676,7 @@ td { padding:13px 16px; font-size: 0.941rem; color:var(--ink); vertical-align:mi
             <div style="display:flex;gap:8px;flex-wrap:wrap">
               <button class="btn btn-green" onclick="downloadReport('departamentos','pdf')"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#2e4a1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Descargar PDF</button>
               <button class="btn btn-outline" onclick="downloadReport('departamentos','csv')"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#2e4a1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg> Exportar CSV</button>
-              <button class="btn btn-outline" onclick="downloadReport('departamentos','excel')" style="border-color:#217346;color:#217346">📊 Excel</button>
-              <button class="btn btn-outline" onclick="exportToSheets('departamentos')" style="border-color:#0f9d58;color:#0f9d58"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#0f9d58" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><circle cx="12" cy="12" r="9"/></svg> Google Sheets</button>
+              <button class="btn btn-outline" onclick="downloadReport('departamentos','sheets')" style="border-color:#0f9d58;color:#0f9d58">📊 Google Sheets</button>
             </div>
           </div>
         </div>
@@ -731,12 +730,16 @@ td { padding:13px 16px; font-size: 0.941rem; color:var(--ink); vertical-align:mi
             <div class="card-header"><div class="card-title">Colores de la App</div></div>
             <div class="card-body">
               <p style="font-size:13px;color:var(--ink-muted);margin-bottom:18px">Personaliza los colores principales de la interfaz.</p>
-              <div class="color-row"><label class="form-label" style="margin:0;width:150px">Color Principal</label><input type="color" id="cfg-forest" value="#2e4a1e" class="color-swatch" onchange="applyColor('forest',this.value)"><span id="cfg-forest-val" style="font-size:12px;color:var(--ink-muted)">#2e4a1e</span></div>
-              <div class="color-row"><label class="form-label" style="margin:0;width:150px">Color Topbar</label><input type="color" id="cfg-topbar" value="#2c2416" class="color-swatch" onchange="applyColor('topbar',this.value)"><span id="cfg-topbar-val" style="font-size:12px;color:var(--ink-muted)">#2c2416</span></div>
-              <div class="color-row"><label class="form-label" style="margin:0;width:150px">Color Dorado</label><input type="color" id="cfg-gold" value="#8a6d2e" class="color-swatch" onchange="applyColor('gold',this.value)"><span id="cfg-gold-val" style="font-size:12px;color:var(--ink-muted)">#8a6d2e</span></div>
-              <div class="color-row"><label class="form-label" style="margin:0;width:150px">Color Urgente</label><input type="color" id="cfg-red" value="#8b1a1a" class="color-swatch" onchange="applyColor('red',this.value)"><span id="cfg-red-val" style="font-size:12px;color:var(--ink-muted)">#8b1a1a</span></div>
-              <div class="color-row"><label class="form-label" style="margin:0;width:150px">Color Fondo</label><input type="color" id="cfg-cream" value="#f5f0e8" class="color-swatch" onchange="applyColor('cream',this.value)"><span id="cfg-cream-val" style="font-size:12px;color:var(--ink-muted)">#f5f0e8</span></div>
-              <div class="color-row"><label class="form-label" style="margin:0;width:150px">Color Seleccionado</label><input type="color" id="cfg-forest-light" value="#e4eed8" class="color-swatch" onchange="applyColor('forest-light',this.value)"><span id="cfg-forest-light-val" style="font-size:0.765rem;color:var(--ink-muted)">#e4eed8</span></div>
+              <div class="color-row"><label class="form-label" style="margin:0;width:170px">Color Principal (menú)</label><input type="color" id="cfg-forest" value="#2e4a1e" class="color-swatch" onchange="applyColor('forest',this.value)"><span id="cfg-forest-val" style="font-size:12px;color:var(--ink-muted)">#2e4a1e</span></div>
+              <div class="color-row"><label class="form-label" style="margin:0;width:170px">Color Topbar</label><input type="color" id="cfg-topbar" value="#2c2416" class="color-swatch" onchange="applyColor('topbar',this.value)"><span id="cfg-topbar-val" style="font-size:12px;color:var(--ink-muted)">#2c2416</span></div>
+              <div class="color-row"><label class="form-label" style="margin:0;width:170px">Color Dorado (acentos)</label><input type="color" id="cfg-gold" value="#8a6d2e" class="color-swatch" onchange="applyColor('gold',this.value)"><span id="cfg-gold-val" style="font-size:12px;color:var(--ink-muted)">#8a6d2e</span></div>
+              <div class="color-row"><label class="form-label" style="margin:0;width:170px">Color Urgente/Error</label><input type="color" id="cfg-red" value="#8b1a1a" class="color-swatch" onchange="applyColor('red',this.value)"><span id="cfg-red-val" style="font-size:12px;color:var(--ink-muted)">#8b1a1a</span></div>
+              <div class="color-row"><label class="form-label" style="margin:0;width:170px">Color Fondo Principal</label><input type="color" id="cfg-cream" value="#f5f0e8" class="color-swatch" onchange="applyColor('cream',this.value)"><span id="cfg-cream-val" style="font-size:12px;color:var(--ink-muted)">#f5f0e8</span></div>
+              <div class="color-row"><label class="form-label" style="margin:0;width:170px">Color Seleccionado</label><input type="color" id="cfg-forest-light" value="#e4eed8" class="color-swatch" onchange="applyColor('forest-light',this.value)"><span id="cfg-forest-light-val" style="font-size:12px;color:var(--ink-muted)">#e4eed8</span></div>
+              <div class="color-row"><label class="form-label" style="margin:0;width:170px">Color Advertencia</label><input type="color" id="cfg-amber" value="#8a6d2e" class="color-swatch" onchange="applyColor('amber',this.value)"><span id="cfg-amber-val" style="font-size:12px;color:var(--ink-muted)">#8a6d2e</span></div>
+              <div class="color-row"><label class="form-label" style="margin:0;width:170px">Color Azul (info)</label><input type="color" id="cfg-blue" value="#2e4a7a" class="color-swatch" onchange="applyColor('blue',this.value)"><span id="cfg-blue-val" style="font-size:12px;color:var(--ink-muted)">#2e4a7a</span></div>
+              <div class="color-row"><label class="form-label" style="margin:0;width:170px">Color Verde (OK)</label><input type="color" id="cfg-forest2" value="#3a6b24" class="color-swatch" onchange="applyColor('forest2',this.value)"><span id="cfg-forest2-val" style="font-size:12px;color:var(--ink-muted)">#3a6b24</span></div>
+              <div class="color-row"><label class="form-label" style="margin:0;width:170px">Color Borde</label><input type="color" id="cfg-border" value="#d6c9b0" class="color-swatch" onchange="applyColor('border',this.value)"><span id="cfg-border-val" style="font-size:12px;color:var(--ink-muted)">#d6c9b0</span></div>
               <button class="btn btn-outline btn-sm" onclick="resetColors()" style="margin-top:8px">↺ Restablecer colores</button>
             </div>
           </div>
@@ -748,10 +751,18 @@ td { padding:13px 16px; font-size: 0.941rem; color:var(--ink); vertical-align:mi
               <select class="form-select" id="cfg-font" onchange="applyFont(this.value)">
                 <option value="Inter,sans-serif">Inter (por defecto)</option>
                 <option value="'Helvetica Neue',Helvetica,sans-serif">Helvetica Neue</option>
-                <option value="Georgia,serif">Georgia (serif)</option>
+                <option value="Georgia,serif">Georgia (serif clásico)</option>
                 <option value="'Trebuchet MS',sans-serif">Trebuchet MS</option>
-                <option value="system-ui,sans-serif">System UI</option>
-                <option value="'Courier New',monospace">Courier New (monospace)</option>
+                <option value="system-ui,sans-serif">System UI (nativa del SO)</option>
+                <option value="'Courier New',monospace">Courier New (monoespaciada)</option>
+                <option value="'Palatino Linotype',Palatino,serif">Palatino (elegante)</option>
+                <option value="'Book Antiqua',Palatino,serif">Book Antiqua</option>
+                <option value="Verdana,Geneva,sans-serif">Verdana (legible)</option>
+                <option value="Tahoma,Geneva,sans-serif">Tahoma (compacta)</option>
+                <option value="'Arial',sans-serif">Arial (clásica)</option>
+                <option value="'Gill Sans','Gill Sans MT',sans-serif">Gill Sans (moderna)</option>
+                <option value="'Optima',Optima,sans-serif">Optima (humanista)</option>
+                <option value="'Garamond','EB Garamond',serif">Garamond (editorial)</option>
               </select>
               <label class="form-label">Tamaño de texto base</label>
               <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
@@ -759,7 +770,7 @@ td { padding:13px 16px; font-size: 0.941rem; color:var(--ink); vertical-align:mi
                 <span id="cfg-fontsize-val" style="font-weight:700;min-width:36px;text-align:right">17px</span>
               </div>
               <div style="padding:12px 16px;background:var(--cream);border-radius:8px;font-size:13px;color:var(--ink-muted);margin-bottom:16px">
-                Vista previa: <span id="font-preview" style="color:var(--ink)">El texto de la app se verá así</span>
+                Vista previa: <span id="font-preview" style="color:var(--ink)">El texto de la app se verá así en todos los menús y pantallas</span>
               </div>
               <button class="btn btn-outline btn-sm" onclick="resetFont()">↺ Restablecer tipografía</button>
             </div>
@@ -771,7 +782,19 @@ td { padding:13px 16px; font-size: 0.941rem; color:var(--ink); vertical-align:mi
               <input class="form-input" id="cfg-appname" value="Noctis Hub">
               <label class="form-label">Hotel Principal</label>
               <input class="form-input" id="cfg-hotel" value="Noctis Hotel Barcelona">
-              <button class="btn btn-green" onclick="saveConfig()">Guardar Configuración</button>
+              <label class="form-label">Zona horaria</label>
+              <select class="form-select" id="cfg-timezone">
+                <option value="Europe/Madrid">Europa/Madrid (CET/CEST)</option>
+                <option value="Europe/London">Europa/Londres</option>
+                <option value="America/New_York">América/Nueva York</option>
+                <option value="America/Mexico_City">América/Ciudad de México</option>
+              </select>
+              <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
+                <button class="btn btn-green" onclick="saveConfigWithConfirm()" style="width:100%;padding:14px;font-size:15px;font-weight:700;letter-spacing:0.04em;border-radius:10px;display:flex;align-items:center;justify-content:center;gap:8px">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1.1em" height="1.1em" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  Guardar Configuración
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -791,7 +814,11 @@ td { padding:13px 16px; font-size: 0.941rem; color:var(--ink); vertical-align:mi
     <div class="page" id="page-archive">
       <div class="page-header">
         <div><div class="page-title">Historial de Checklists</div><div class="page-subtitle">Registro diario — completado es permanente, solo Super Admin puede deshacer</div></div>
-        <button class="btn btn-outline btn-sm" onclick="downloadReport('checklists','csv')" style="align-self:flex-start">⬇ Descargar CSV</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-self:flex-start">
+          <button class="btn btn-outline btn-sm" onclick="downloadReport('checklists','csv')">⬇ CSV</button>
+          <button class="btn btn-outline btn-sm" onclick="downloadReport('checklists','pdf')" style="border-color:#8b1a1a;color:#8b1a1a">⬇ PDF</button>
+          <button class="btn btn-outline btn-sm" onclick="downloadReport('checklists','sheets')" style="border-color:#0f9d58;color:#0f9d58">⬇ Google Sheets</button>
+        </div>
       </div>
       <div style="margin-bottom:16px;display:flex;gap:10px;flex-wrap:wrap">
         <select class="form-select" id="arc-dept-sel" onchange="renderArchive()" style="margin-bottom:0;min-width:170px"></select>
@@ -806,33 +833,62 @@ td { padding:13px 16px; font-size: 0.941rem; color:var(--ink); vertical-align:mi
       <div class="page-header">
         <div><div class="page-title">Bloc de Notas</div><div class="page-subtitle" id="notes-subtitle">Notas privadas de tu departamento</div></div>
         <div style="display:flex;gap:8px">
-          <button class="btn btn-outline btn-sm" id="btn-notes-save" onclick="saveNote()">Guardar</button>
+          <button class="btn btn-outline btn-sm" id="btn-notes-save" onclick="saveNote()">💾 Guardar</button>
         </div>
       </div>
       <div id="notes-dept-tabs" class="notepad-dept-tabs"></div>
-      <div class="card">
-        <div class="card-body" style="padding:0">
-          <div class="notepad-toolbar" id="notepad-toolbar">
-            <button class="notepad-btn" onclick="noteCmd(&apos;bold&apos;)" title="Negrita"><b>B</b></button>
-            <button class="notepad-btn" onclick="noteCmd(&apos;italic&apos;)" title="Cursiva"><i>I</i></button>
-            <button class="notepad-btn" onclick="noteCmd(&apos;underline&apos;)" title="Subrayado"><u>U</u></button>
-            <div style="width:1px;background:var(--border);margin:2px 4px"></div>
-            <button class="notepad-btn" onclick="noteCmd(&apos;insertUnorderedList&apos;)" title="Lista">☰</button>
-            <button class="notepad-btn" onclick="noteCmd(&apos;insertOrderedList&apos;)" title="Lista numerada">1.</button>
-            <div style="width:1px;background:var(--border);margin:2px 4px"></div>
-            <span style="font-size:11px;color:var(--ink-muted);align-self:center;margin-right:2px">Resaltar:</span>
-            <button class="notepad-btn color-swatch-btn" style="background:#fef9c3;border-color:#d4b800" onclick="noteHighlight(&apos;#fef9c3&apos;)" title="Amarillo"></button>
-            <button class="notepad-btn color-swatch-btn" style="background:#dcfce7;border-color:#86efac" onclick="noteHighlight(&apos;#dcfce7&apos;)" title="Verde"></button>
-            <button class="notepad-btn color-swatch-btn" style="background:#fee2e2;border-color:#fca5a5" onclick="noteHighlight(&apos;#fee2e2&apos;)" title="Rojo suave"></button>
-            <button class="notepad-btn color-swatch-btn" style="background:#e0e7ff;border-color:#a5b4fc" onclick="noteHighlight(&apos;#e0e7ff&apos;)" title="Azul suave"></button>
-            <button class="notepad-btn color-swatch-btn" style="background:#f3e8ff;border-color:#d8b4fe" onclick="noteHighlight(&apos;#f3e8ff&apos;)" title="Morado suave"></button>
-            <button class="notepad-btn color-swatch-btn" style="background:white;border-color:#ccc" onclick="noteCmd(&apos;removeFormat&apos;)" title="Quitar formato">✕</button>
-          </div>
-          <div class="notepad-editor" id="notepad-editor" contenteditable="true" spellcheck="true" oninput="onNoteInput()"></div>
-          <div style="padding:6px 18px 10px;display:flex;justify-content:space-between;align-items:center">
-            <span class="notepad-saved" id="notepad-saved">✓ Guardado</span>
-            <span style="font-size:11px;color:var(--ink-muted)" id="notepad-last-saved"></span>
-          </div>
+      <div style="background:white;border:1px solid var(--border);border-radius:12px;overflow:hidden;min-height:calc(100vh - 280px);display:flex;flex-direction:column;box-shadow:0 4px 24px rgba(0,0,0,0.08)">
+        <!-- Toolbar -->
+        <div class="notepad-toolbar" id="notepad-toolbar" style="padding:10px 16px;border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;gap:4px;background:#fafaf7;position:sticky;top:0;z-index:10">
+          <button class="notepad-btn" onclick="noteCmd(&apos;bold&apos;)" title="Negrita" style="font-weight:800;width:30px;height:30px"><b>B</b></button>
+          <button class="notepad-btn" onclick="noteCmd(&apos;italic&apos;)" title="Cursiva" style="width:30px;height:30px"><i>I</i></button>
+          <button class="notepad-btn" onclick="noteCmd(&apos;underline&apos;)" title="Subrayado" style="width:30px;height:30px"><u>U</u></button>
+          <button class="notepad-btn" onclick="noteCmd(&apos;strikeThrough&apos;)" title="Tachado" style="width:30px;height:30px;text-decoration:line-through">S</button>
+          <div style="width:1px;background:var(--border);margin:2px 4px"></div>
+          <select onchange="noteCmd('fontSize',false,this.value);this.value=''" style="padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;height:30px;cursor:pointer">
+            <option value="">Tamaño</option>
+            <option value="1">Pequeño</option>
+            <option value="3">Normal</option>
+            <option value="5">Grande</option>
+            <option value="7">Muy Grande</option>
+          </select>
+          <select onchange="noteFontFamily(this.value);this.value=''" style="padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;height:30px;cursor:pointer">
+            <option value="">Fuente</option>
+            <option value="Inter,sans-serif">Inter</option>
+            <option value="Georgia,serif">Georgia</option>
+            <option value="'Courier New',monospace">Courier</option>
+            <option value="Arial,sans-serif">Arial</option>
+          </select>
+          <div style="width:1px;background:var(--border);margin:2px 4px"></div>
+          <button class="notepad-btn" onclick="noteCmd(&apos;justifyLeft&apos;)" title="Izquierda" style="width:30px;height:30px">⬅</button>
+          <button class="notepad-btn" onclick="noteCmd(&apos;justifyCenter&apos;)" title="Centrar" style="width:30px;height:30px">≡</button>
+          <button class="notepad-btn" onclick="noteCmd(&apos;justifyRight&apos;)" title="Derecha" style="width:30px;height:30px">➡</button>
+          <div style="width:1px;background:var(--border);margin:2px 4px"></div>
+          <button class="notepad-btn" onclick="noteCmd(&apos;insertUnorderedList&apos;)" title="Lista" style="width:30px;height:30px">•</button>
+          <button class="notepad-btn" onclick="noteCmd(&apos;insertOrderedList&apos;)" title="Numerada" style="width:30px;height:30px">1.</button>
+          <button class="notepad-btn" onclick="noteCmd(&apos;indent&apos;)" title="Sangría" style="width:30px;height:30px">→</button>
+          <button class="notepad-btn" onclick="noteCmd(&apos;outdent&apos;)" title="Quitar sangría" style="width:30px;height:30px">←</button>
+          <div style="width:1px;background:var(--border);margin:2px 4px"></div>
+          <span style="font-size:11px;color:var(--ink-muted);align-self:center;padding:0 4px">Resaltar:</span>
+          <button class="notepad-btn color-swatch-btn" style="background:#fef9c3;border:2px solid #d4b800;width:22px;height:22px;align-self:center" onclick="noteHighlight(&apos;#fef9c3&apos;)" title="Amarillo"></button>
+          <button class="notepad-btn color-swatch-btn" style="background:#dcfce7;border:2px solid #86efac;width:22px;height:22px;align-self:center" onclick="noteHighlight(&apos;#dcfce7&apos;)" title="Verde"></button>
+          <button class="notepad-btn color-swatch-btn" style="background:#fee2e2;border:2px solid #fca5a5;width:22px;height:22px;align-self:center" onclick="noteHighlight(&apos;#fee2e2&apos;)" title="Rojo suave"></button>
+          <button class="notepad-btn color-swatch-btn" style="background:#e0e7ff;border:2px solid #a5b4fc;width:22px;height:22px;align-self:center" onclick="noteHighlight(&apos;#e0e7ff&apos;)" title="Azul"></button>
+          <button class="notepad-btn color-swatch-btn" style="background:#f3e8ff;border:2px solid #d8b4fe;width:22px;height:22px;align-self:center" onclick="noteHighlight(&apos;#f3e8ff&apos;)" title="Morado"></button>
+          <button class="notepad-btn color-swatch-btn" style="background:#fde8d8;border:2px solid #fdba74;width:22px;height:22px;align-self:center" onclick="noteHighlight(&apos;#fde8d8&apos;)" title="Naranja suave"></button>
+          <button class="notepad-btn color-swatch-btn" style="background:#e0f2fe;border:2px solid #7dd3fc;width:22px;height:22px;align-self:center" onclick="noteHighlight(&apos;#e0f2fe&apos;)" title="Azul claro"></button>
+          <span style="font-size:11px;color:var(--ink-muted);align-self:center;padding:0 4px">Color texto:</span>
+          <input type="color" value="#1a1208" onchange="noteForeColor(this.value)" title="Color de texto" style="width:26px;height:26px;border:1px solid var(--border);border-radius:4px;cursor:pointer;padding:1px;align-self:center">
+          <div style="width:1px;background:var(--border);margin:2px 4px"></div>
+          <button class="notepad-btn" onclick="noteCmd(&apos;removeFormat&apos;)" title="Quitar formato" style="width:30px;height:30px;font-size:14px">✕</button>
+          <button class="notepad-btn" onclick="noteCmd(&apos;undo&apos;)" title="Deshacer" style="width:30px;height:30px">↩</button>
+          <button class="notepad-btn" onclick="noteCmd(&apos;redo&apos;)" title="Rehacer" style="width:30px;height:30px">↪</button>
+        </div>
+        <!-- Editor — lined notebook background -->
+        <div class="notepad-editor" id="notepad-editor" contenteditable="true" spellcheck="true" oninput="onNoteInput()" style="flex:1;min-height:500px;padding:24px 36px;font-size:16px;line-height:1.9;outline:none;background-image:repeating-linear-gradient(transparent,transparent calc(1.9em - 1px),#e8e0d0 calc(1.9em - 1px),#e8e0d0 1.9em);background-size:100% 1.9em;font-family:'Georgia',serif;color:#1a1208;border:none"></div>
+        <div style="padding:8px 20px 10px;display:flex;justify-content:space-between;align-items:center;background:#fafaf7;border-top:1px solid var(--border)">
+          <span class="notepad-saved" id="notepad-saved">✓ Guardado</span>
+          <span style="font-size:11px;color:var(--ink-muted)" id="notepad-last-saved"></span>
         </div>
       </div>
     </div>
@@ -1116,7 +1172,7 @@ async function loadAllData() {
     try {
       const cfg = await SB.get('nh_config', '');
       if(cfg && cfg.length) {
-        const colorMap={color_forest:'forest',color_topbar:'topbar',color_gold:'gold',color_red:'red',color_cream:'cream','color_forest-light':'forest-light'};
+        const colorMap={color_forest:'forest',color_topbar:'topbar',color_gold:'gold',color_red:'red',color_cream:'cream','color_forest-light':'forest-light',color_amber:'amber',color_blue:'blue',color_forest2:'forest2',color_border:'border'};
         cfg.forEach(row => {
           if(row.key==='font_family'){ applyFont(row.value); }
           if(row.key==='hotel_name' && row.value){ const el=document.getElementById('cfg-hotel'); if(el) el.value=row.value; }
@@ -1258,7 +1314,7 @@ async function applyConfigFromDB(){
   try {
     const cfg = await SB.get('nh_config','');
     if(!cfg||!cfg.length) return;
-    const colorMap={color_forest:'forest',color_topbar:'topbar',color_gold:'gold',color_red:'red',color_cream:'cream','color_forest-light':'forest-light'};
+    const colorMap={color_forest:'forest',color_topbar:'topbar',color_gold:'gold',color_red:'red',color_cream:'cream','color_forest-light':'forest-light',color_amber:'amber',color_blue:'blue',color_forest2:'forest2',color_border:'border'};
     cfg.forEach(row => {
       if(row.key==='font_family') applyFont(row.value);
       if(row.key==='font_size') applyFontSize(row.value);
@@ -1462,10 +1518,15 @@ function renderDashboard(){
     const tpls=TEMPLATES.filter(t=>t.dept===d);
     let done=0;
     tpls.forEach(t=>{if(t.items.every((_,i)=>CHK[`${t.id}-${today}-${i}`])&&t.items.length>0)done++;});
-    const pct=tpls.length?Math.round(done/tpls.length*100):0;
+    const pct=tpls.length>0?Math.round(done/tpls.length*100):0;
     const oi=INCIDENTS.filter(i=>i.dept===d&&i.status==='ABIERTA').length;
-    const st=pct===100?'<span class="badge badge-green">Al día</span>':pct>0?'<span class="badge badge-amber">En Curso</span>':'<span class="badge badge-gray">Pendiente</span>';
-    return `<tr onclick="navTo('checklists',document.getElementById('nav-checklists'))"><td>${D_ICONS[d]||''} ${d}</td><td><div style="display:flex;align-items:center;gap:7px"><div class="progress-bg" style="width:70px;height:6px"><div class="progress-fill" style="width:${pct}%"></div></div><span style="font-size:11px;color:var(--ink-muted)">${pct}%</span></div></td><td>${oi>0?`<span class="badge badge-red">${oi}</span>`:`<span class="badge badge-green">0</span>`}</td><td>${st}</td></tr>`;
+    const statusLabel=pct===100?'<span class="badge badge-green">✓ Al día</span>':pct>0?'<span class="badge badge-amber">En Curso</span>':'<span class="badge badge-gray">Pendiente</span>';
+    return `<tr>
+      <td>${D_ICONS[d]||''} ${d}</td>
+      <td style="cursor:pointer" onclick="incDeptFilter='all';navTo('checklists',document.getElementById('nav-checklists'))"><div style="display:flex;align-items:center;gap:7px"><div class="progress-bg" style="width:70px;height:6px"><div class="progress-fill" style="width:${pct}%"></div></div><span style="font-size:11px;color:var(--ink-muted)">${pct}%</span></div></td>
+      <td style="cursor:pointer" onclick="incDeptFilter='${d}';navTo('incidents',document.getElementById('nav-incidents'))">${oi>0?`<span class="badge badge-red" style="cursor:pointer">${oi}</span>`:`<span class="badge badge-green">0</span>`}</td>
+      <td>${statusLabel}</td>
+    </tr>`;
   }).join('');
 
   // Recent incidents
@@ -1811,14 +1872,15 @@ function renderNotes(){
   const tabs = document.getElementById('notes-dept-tabs');
   const D_LABELS = {Recepción:'🛎️',Housekeeping:'🛏️',Mantenimiento:'🔧','F&B':'☕',Administración:'📁',Dirección:'🏠'};
   const allDepts = ['Recepción','Housekeeping','Mantenimiento','F&B','Administración','Dirección'];
+  // Each user has their own note key: "dept:userId" — SA sees dept keys (shared dept notes)
+  const myKey = isS ? null : cu.dept + ':' + cu.id;
   const availableDepts = isS ? allDepts : [cu.dept];
   if(isS){
     subtitle.textContent = 'Como Super Admin puedes ver los blocs de todos los departamentos';
   } else {
-    subtitle.textContent = 'Notas privadas de '+cu.dept+' — solo visibles para tu departamento';
+    subtitle.textContent = 'Tu bloc de notas personal de ' + cu.dept + ' — solo tú puedes verlo';
   }
   if(!notesDept || !availableDepts.includes(notesDept)) notesDept = availableDepts[0];
-  // Build tabs safely without breaking quotes
   tabs.innerHTML = '';
   availableDepts.forEach(function(d){
     const btn = document.createElement('div');
@@ -1828,7 +1890,9 @@ function renderNotes(){
     tabs.appendChild(btn);
   });
   const editor = document.getElementById('notepad-editor');
-  const note = NOTES[notesDept];
+  // Key: for SA use dept, for others use dept:userId
+  const noteKey = isS ? notesDept : (cu.dept + ':' + cu.id);
+  const note = NOTES[noteKey];
   editor.innerHTML = note ? note.content : '';
   const lastSaved = document.getElementById('notepad-last-saved');
   lastSaved.textContent = note && note.updatedAt ? 'Último guardado: '+new Date(note.updatedAt).toLocaleString('es-ES') : 'Sin guardar aún';
@@ -1850,6 +1914,17 @@ function noteHighlight(color){
   document.execCommand('hiliteColor', false, color);
 }
 
+function noteFontFamily(font){
+  if(!font) return;
+  document.getElementById('notepad-editor').focus();
+  document.execCommand('fontName', false, font);
+}
+
+function noteForeColor(color){
+  document.getElementById('notepad-editor').focus();
+  document.execCommand('foreColor', false, color);
+}
+
 function onNoteInput(){
   clearTimeout(_noteAutoSave);
   _noteAutoSave = setTimeout(function(){saveNote(true);}, 3000);
@@ -1860,9 +1935,11 @@ async function saveNote(silent){
   const editorEl = document.getElementById('notepad-editor');
   if(!editorEl) return;
   const noteContent = editorEl.innerHTML;
-  NOTES[notesDept] = {content:noteContent, updatedAt: new Date().toISOString()};
+  const isS = cu.role==='SUPER_ADMIN';
+  const noteKey = isS ? notesDept : (cu.dept + ':' + cu.id);
+  NOTES[noteKey] = {content:noteContent, updatedAt: new Date().toISOString()};
   try{
-    await SB.upsert('nh_notes', {dept:notesDept, content:noteContent, updated_at:new Date().toISOString()});
+    await SB.upsert('nh_notes', {dept:noteKey, content:noteContent, updated_at:new Date().toISOString()});
   }catch(e){ console.warn('Notes save error:', e); }
   const savedEl = document.getElementById('notepad-saved');
   const lastSaved = document.getElementById('notepad-last-saved');
@@ -2381,29 +2458,46 @@ async function saveTemplate(){
 // ══════════════════════════════════════════════════════════════
 // HOTELS
 // ══════════════════════════════════════════════════════════════
+let activeHotelId = null; // null = default hotel
+
 function renderHotels(){
   const grid=document.getElementById('hotels-grid');
   grid.innerHTML=HOTELS.map(h=>`
-    <div class="hotel-card" style="cursor:default">
+    <div class="hotel-card" style="${activeHotelId===h.id?'border-color:var(--forest);border-width:2px;background:var(--forest-light)':''}">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
         <div style="font-size:36px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#2e4a1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
         <div style="display:flex;gap:8px">
-          <button class="btn btn-outline btn-sm" onclick="editHotel(${h.id})"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#2e4a1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Editar</button>
+          <button class="btn btn-outline btn-sm" onclick="editHotel(${h.id})">✎ Editar</button>
           <button class="btn btn-red btn-sm" onclick="toggleHotelActive(${h.id})">${h.active?'Desactivar':'Activar'}</button>
         </div>
       </div>
       <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;margin-bottom:8px">${h.name}</div>
-      <div style="font-size:13px;color:var(--ink-muted);line-height:1.8">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#2e4a1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg> ${h.city||'—'}<br>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#2e4a1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><path d="M2 4v16"/><path d="M2 8h18a2 2 0 012 2v10"/><path d="M2 17h20"/><path d="M6 8v9"/></svg> ${h.rooms||0} habitaciones<br>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#2e4a1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Director/a: ${h.manager||'—'}
+      <div style="font-size:13px;color:var(--ink-muted);line-height:1.8;margin-bottom:14px">
+        📍 ${h.city||'—'}<br>
+        🛏️ ${h.rooms||0} habitaciones<br>
+        👤 Director/a: ${h.manager||'—'}
       </div>
-      <div style="margin-top:12px"><span class="badge ${h.active?'badge-green':'badge-gray'}">${h.active?'✓ Activo':'Inactivo'}</span></div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span class="badge ${h.active?'badge-green':'badge-gray'}">${h.active?'✓ Activo':'Inactivo'}</span>
+        ${activeHotelId===h.id
+          ? `<span class="badge badge-gold">★ Hotel activo</span>`
+          : h.active ? `<button class="btn btn-green btn-sm" onclick="switchToHotel(${h.id})">→ Ir a este hotel</button>` : ''}
+      </div>
     </div>`).join('')+`
     <div class="hotel-card" style="border:2px dashed var(--border);background:transparent;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;cursor:pointer;min-height:180px" onclick="openAddHotel()">
       <div style="font-size:40px;color:var(--ink-muted)">+</div>
       <div style="font-size:14px;font-weight:600;color:var(--ink-muted)">Añadir Nuevo Hotel</div>
     </div>`;
+}
+
+async function switchToHotel(id){
+  const h = HOTELS.find(x=>x.id===id);
+  if(!h) return;
+  if(!confirm(`¿Cambiar al hotel "${h.name}"?\n\nVerás y gestionarás los datos de este hotel.`)) return;
+  activeHotelId = id;
+  toast(`✓ Ahora gestionando: ${h.name}`);
+  renderHotels();
+  navTo('dashboard', document.getElementById('nav-dashboard'));
 }
 
 function openAddHotel(){
@@ -2458,10 +2552,27 @@ async function toggleHotelActive(id){
 // CONFIG / COLORS
 // ══════════════════════════════════════════════════════════════
 function applyColor(key, val){
-  const map={forest:'--forest',topbar:'--topbar-bg',gold:'--gold',red:'--red',cream:'--cream','forest-light':'--forest-light'};
+  const map={
+    forest:'--forest',
+    topbar:'--topbar-bg',
+    gold:'--gold',
+    red:'--red',
+    cream:'--cream',
+    'forest-light':'--forest-light',
+    amber:'--amber',
+    blue:'--blue',
+    forest2:'--forest',  // secondary green maps to forest override
+    border:'--border'
+  };
   if(map[key]) document.documentElement.style.setProperty(map[key], val);
   const valEl=document.getElementById('cfg-'+key+'-val');
   if(valEl) valEl.textContent=val;
+}
+
+async function saveConfigWithConfirm(){
+  if(cu.role!=='SUPER_ADMIN'){toast('✗ Solo el Super Admin puede cambiar la configuración');return;}
+  if(!confirm('¿Guardar la configuración?\n\nLos cambios de colores y tipografía se aplicarán a todos los usuarios en su próxima sesión.')) return;
+  await saveConfig();
 }
 
 async function saveConfig(){
@@ -2470,19 +2581,19 @@ async function saveConfig(){
   const fontSizeVal = document.getElementById('cfg-fontsize')?.value || '17';
   const hotelNameVal = document.getElementById('cfg-hotel')?.value || '';
   const appNameVal = document.getElementById('cfg-appname')?.value || 'Noctis Hub';
-  const keys=['forest','topbar','gold','red','cream','forest-light'];
+  const keys=['forest','topbar','gold','red','cream','forest-light','amber','blue','forest2','border'];
   const allUpdates = [
     {key:'font_family', value:fontVal},
     {key:'font_size', value:fontSizeVal},
     {key:'hotel_name', value:hotelNameVal},
     {key:'app_name', value:appNameVal},
-    ...keys.map(k=>({key:'color_'+k, value:document.getElementById('cfg-'+k)?.value||''}))
+    ...keys.map(k=>({key:'color_'+k, value:document.getElementById('cfg-'+k)?.value||''})).filter(u=>u.value)
   ];
   try{
     for(const u of allUpdates){
       await SB.upsert('nh_config', u);
     }
-    toast('✓ Configuración guardada');
+    toast('✓ Configuración guardada correctamente');
   } catch(e){
     toast('✓ Colores aplicados (sin Supabase)');
   }
@@ -2540,21 +2651,23 @@ function downloadCSV(content,filename){
   setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 }
 
-function downloadExcel(rows, headers, filename){
-  // Build a simple HTML table that Excel opens natively
-  let html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">';
-  html += '<head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Informe</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head><body><table>';
-  html += '<tr>' + headers.map(h=>`<th style="background:#2e4a1e;color:white;font-weight:bold;padding:6px">${h}</th>`).join('') + '</tr>';
-  rows.forEach((row,ri) => {
-    html += '<tr>' + row.map(cell=>`<td style="padding:4px;background:${ri%2===0?'#ffffff':'#f5f0e8'}">${cell===null||cell===undefined?'':String(cell).replace(/<[^>]+>/g,'')}</td>`).join('') + '</tr>';
-  });
-  html += '</table></body></html>';
-  const blob = new Blob([html], {type:'application/vnd.ms-excel;charset=utf-8'});
+function downloadSheets(rows, headers, filename){
+  // Build CSV content and open in Google Sheets via import
+  const content = buildCSV(rows, headers);
+  const blob = new Blob([content], {type:'text/csv;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  // Download CSV then show instructions to import to Sheets
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = filename;
+  a.href = url;
+  a.download = filename.replace('.xls','.csv');
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+  // Also open Google Sheets new sheet
+  setTimeout(()=>{
+    const sheetsUrl = 'https://sheets.new';
+    window.open(sheetsUrl,'_blank');
+    toast('✓ CSV descargado — Arrastra el archivo al Google Sheets que se abrió');
+  }, 500);
 }
 
 function downloadReport(type,format){
@@ -2648,7 +2761,7 @@ function downloadReport(type,format){
     return;
   }
 
-  if(format==='excel'){
+  if(format==='excel'||format==='sheets'){
     const {from}=getReportDateRange();
     let rows=[], headers=[], filename='';
     if(type==='incidencias'){
@@ -2660,7 +2773,7 @@ function downloadReport(type,format){
         const histNotes=(i.history||[]).map(h=>h.text||'').filter(Boolean).join(' | ');
         return[i.id,i.title,i.desc||'',i.dept,i.prio,i.status,i.at?new Date(i.at).toLocaleDateString('es-ES'):'',creator?creator.name:'',assignedNames,histNotes];
       });
-      filename='noctis-incidencias-'+from+'.xls';
+      filename='noctis-incidencias-'+from;
     } else if(type==='empleados'){
       headers=['Empleado','Email','Departamento','Rol','Inc. Creadas','Inc. Resueltas','Tasa Resolución','Inc. Asignadas','Tareas Checklist','% Completado'];
       rows=USERS.filter(u=>u.active).map(u=>{
@@ -2673,14 +2786,14 @@ function downloadReport(type,format){
         const tasa=myInc.length>0?Math.round(incResueltas/myInc.length*100)+'%':'—';
         return[u.name,u.email,u.dept,roleLabel(u.role),myInc.length,incResueltas,tasa,incAsignadas,chkDone+'/'+totalChk,pct+'%'];
       });
-      filename='noctis-empleados-'+from+'.xls';
+      filename='noctis-empleados-'+from;
     } else if(type==='checklists'){
       headers=['Departamento','Plantilla','Turno','Tarea','Estado','Completado Por','Hora'];
       rows=TEMPLATES.flatMap(t=>t.items.map((item,i)=>{
         const ck=CHK[`${t.id}-${from}-${i}`];
         return[t.dept,t.name,t.shift,item,ck?'Completado':'Pendiente',ck?ck.user:'—',ck?ck.time:'—'];
       }));
-      filename='noctis-checklists-'+from+'.xls';
+      filename='noctis-checklists-'+from;
     } else {
       headers=['Departamento','Personal','Plantillas','% Checklists','Inc. Abiertas','Inc. En Proceso','Inc. Resueltas','Inc. Críticas','Tasa Resolución','Estado'];
       rows=DEPTS.map(d=>{
@@ -2698,10 +2811,10 @@ function downloadReport(type,format){
         const estado=crit>0?'⚠ Crítico':abierta>3?'Atención':pct<50?'Revisar':'✓ Operativo';
         return[d,staff,tpls.length,pct+'%',abierta,enProceso,res,crit,tr+'%',estado];
       });
-      filename='noctis-departamentos-'+from+'.xls';
+      filename='noctis-departamentos-'+from;
     }
-    downloadExcel(rows,headers,filename);
-    toast('✓ Excel descargado');
+    downloadSheets(rows,headers,filename+'.csv');
+    toast('✓ CSV descargado — Se abrirá Google Sheets para importar');
     return;
   }
 
