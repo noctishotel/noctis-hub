@@ -1856,14 +1856,14 @@ function renderChkCard(t,today){
       <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--cream-dark)">
         <div style="font-size:0.72rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-muted);margin-bottom:6px">📝 Nota del turno</div>
         ${canNote
-          ? `<div style="display:flex;gap:8px;align-items:flex-start">
+          ? `<div style="display:flex;gap:6px;align-items:flex-start">
               <textarea id="chknote-${t.id}" rows="2" placeholder="Añade una nota o comentario para este turno…"
-                style="flex:1;resize:vertical;padding:8px 10px;font-size:0.82rem;line-height:1.5;border:1px solid var(--border);border-radius:8px;background:white;color:var(--ink);font-family:inherit;outline:none"
+                style="flex:1;min-width:0;resize:vertical;padding:7px 10px;font-size:0.8rem;line-height:1.5;border:1px solid var(--border);border-radius:8px;background:white;color:var(--ink);font-family:inherit;outline:none"
                 onfocus="this.style.borderColor='var(--forest)'" onblur="this.style.borderColor='var(--border)'"
               >${chkNoteText}</textarea>
-              <button class="btn btn-outline btn-sm" style="white-space:nowrap;flex-shrink:0" onclick="saveChkNote(${t.id},'${chkDate}')">💾 Guardar</button>
+              <button style="flex-shrink:0;padding:5px 10px;font-size:0.75rem;font-weight:600;background:var(--cream);border:1px solid var(--border);border-radius:8px;cursor:pointer;color:var(--ink);white-space:nowrap;line-height:1.4" onclick="saveChkNote(${t.id},'${chkDate}')">💾</button>
             </div>
-            ${chkNote && chkNote.updatedAt ? `<div style="font-size:0.7rem;color:var(--ink-muted);margin-top:4px">Última nota: ${new Date(chkNote.updatedAt).toLocaleString('es-ES')} · ${chkNote.author||''}</div>` : ''}`
+            ${chkNote && chkNote.updatedAt ? `<div style="font-size:0.7rem;color:var(--ink-muted);margin-top:3px">Guardado: ${new Date(chkNote.updatedAt).toLocaleString('es-ES')}${chkNote.author?' · '+chkNote.author:''}</div>` : ''}`
           : (chkNoteText
               ? `<div style="font-size:0.82rem;line-height:1.5;color:var(--ink);background:var(--cream);border-radius:8px;padding:8px 10px">${chkNoteText}</div>
                  ${chkNote && chkNote.updatedAt ? `<div style="font-size:0.7rem;color:var(--ink-muted);margin-top:4px">${new Date(chkNote.updatedAt).toLocaleString('es-ES')} · ${chkNote.author||''}</div>` : ''}`
@@ -1879,12 +1879,8 @@ async function toggleChk(ck){
   if(!m)return;
   const tplId=m[1], date=m[2], idx=parseInt(m[3]);
   const tpl=TEMPLATES.find(t=>String(t.id)===tplId);
+  // Solo se puede modificar checklists del propio departamento (SA puede todo)
   if(tpl && cu.role!=='SUPER_ADMIN' && tpl.dept!==cu.dept){toast('✗ No puedes modificar checklists de otro departamento');return;}
-  // If already checked by another user and current user is employee → locked
-  if(CHK[ck] && cu.role==='EMPLOYEE' && CHK[ck].user !== cu.name){
-    toast('✗ Esta tarea fue completada por '+CHK[ck].user+'. Solo un Admin puede desmarcarla.');
-    return;
-  }
   if(CHK[ck]){
     delete CHK[ck];
     try{ await SB.delete('nh_checklist','?template_id=eq.'+tplId+'&date=eq.'+date+'&item_index=eq.'+idx); }catch(e){}
