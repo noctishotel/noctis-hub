@@ -926,6 +926,27 @@ input, select, textarea { max-width:100%; }
           <div class="card-header"><div class="card-title">🔧 Estado de la Configuración guardada</div></div>
           <div class="card-body" id="diag-config-body"></div>
         </div>
+        <div class="card" style="border-color:#d6c9b0">
+          <div class="card-header"><div class="card-title">🛠 SQL para activar hotel_id en nh_config</div></div>
+          <div class="card-body">
+            <p style="font-size:0.82rem;color:var(--ink-muted);margin-bottom:14px">Si el test "Columna hotel_id" falla, ejecuta este SQL en el <strong>SQL Editor de Supabase</strong>. Solo necesitas hacerlo una vez.</p>
+            <div style="background:#1a1208;border-radius:10px;padding:16px;font-family:monospace;font-size:0.78rem;color:#e4eed8;line-height:1.7;overflow-x:auto;white-space:pre;margin-bottom:14px">-- 1. Añadir columna hotel_id a nh_config
+ALTER TABLE nh_config ADD COLUMN IF NOT EXISTS hotel_id int8 DEFAULT 1;
+
+-- 2. Asignar hotel 1 a los datos existentes
+UPDATE nh_config SET hotel_id = 1 WHERE hotel_id IS NULL;
+
+-- 3. Índice para mejorar rendimiento
+CREATE INDEX IF NOT EXISTS idx_nh_config_hotel_id ON nh_config(hotel_id);
+
+-- 4. (Opcional) Limpiar filas duplicadas si las hay
+DELETE FROM nh_config
+WHERE id NOT IN (
+  SELECT MAX(id) FROM nh_config GROUP BY key, hotel_id
+);</div>
+            <button class="btn btn-outline btn-sm" onclick="navigator.clipboard.writeText(document.querySelector('#admin-diagnostics code')?.textContent || '').then(()=>toast('✓ SQL copiado'))">📋 Copiar SQL</button>
+          </div>
+        </div>
       </div>
 
     </div>
@@ -1435,7 +1456,13 @@ async function initApp(){
 
 async function applyConfigFromDB(){
   try {
-    const allCfg = await SB.get('nh_config', `?hotel_id=eq.${activeHotelId}&order=id.desc`);
+    // Try with hotel_id filter first; fall back to no filter if column doesn't exist
+    let allCfg;
+    try {
+      allCfg = await SB.get('nh_config', `?hotel_id=eq.${activeHotelId}&order=id.desc`);
+    } catch(e) {
+      allCfg = await SB.get('nh_config', `?order=id.desc`);
+    }
     if(!allCfg||!allCfg.length) return;
     // Deduplicate: keep only the FIRST (most recent) row per key
     const seen = new Set();
@@ -2578,23 +2605,39 @@ async function runDiagnostics(){
     }
   }
 
-  // 3. WRITE test on nh_config (safe - just upsert a test key)
+  // 3. Detect if hotel_id column exists in nh_config
+  let configHasHotelId = false;
+  try {
+    await SB.get('nh_config', `?hotel_id=eq.${activeHotelId}&limit=1`);
+    configHasHotelId = true;
+  } catch(e) { configHasHotelId = false; }
+
+  // Add hotel_id status as a result
+  results.push({
+    label: 'Columna hotel_id en nh_config',
+    ok: configHasHotelId,
+    detail: configHasHotelId
+      ? '✓ Columna existe — soporte multi-hotel activo'
+      : '⚠️ Columna no existe — guarda configuración igualmente pero sin separación por hotel. Ejecuta el SQL del botón de abajo para activarla.',
+    type: 'write'
+  });
+
+  // 4. WRITE test on nh_config (safe - just insert a test key and delete it)
   const t2 = Date.now();
   try {
     const testKey = '_diag_test';
     const testVal = 'ok_'+Date.now();
-    // Check if exists
-    const existing = await SB.get('nh_config', `?key=eq.${testKey}&hotel_id=eq.${activeHotelId}`);
+    const keyFilter = `?key=eq.${testKey}`;
+    const existing = await SB.get('nh_config', keyFilter);
     let writeOk = false;
     if(existing && existing.length > 0){
-      const r = await SB.patch('nh_config', `?key=eq.${testKey}&hotel_id=eq.${activeHotelId}`, {key:testKey, value:testVal, hotel_id:activeHotelId});
+      await SB.patch('nh_config', keyFilter, {value: testVal});
       writeOk = true;
     } else {
-      const r = await SB.post('nh_config', {key:testKey, value:testVal, hotel_id:activeHotelId});
+      const r = await SB.post('nh_config', {key:testKey, value:testVal});
       writeOk = Array.isArray(r) && r.length > 0;
     }
-    // Verify the write
-    const verify = await SB.get('nh_config', `?key=eq.${testKey}&hotel_id=eq.${activeHotelId}`);
+    const verify = await SB.get('nh_config', keyFilter);
     const verified = verify && verify[0] && verify[0].value === testVal;
     results.push({
       label:'Escritura + Verificación (nh_config)',
@@ -2602,21 +2645,21 @@ async function runDiagnostics(){
       detail: verified ? `✓ Dato escrito y leído correctamente · ${Date.now()-t2}ms` : `✗ Escritura no verificada`,
       type:'write'
     });
-    // Clean up test row if we inserted it
+    // Clean up
     if(!existing || existing.length === 0){
-      await SB.delete('nh_config', `?key=eq.${testKey}&hotel_id=eq.${activeHotelId}`);
+      await SB.delete('nh_config', keyFilter);
     }
   } catch(e) {
     results.push({ label:'Escritura + Verificación (nh_config)', ok:false, detail:`${e.message}`, type:'write' });
   }
 
-  // 4. PATCH test on nh_config (the actual config save path)
+  // 5. PATCH test
   const t3 = Date.now();
   try {
-    const existing = await SB.get('nh_config', `?hotel_id=eq.${activeHotelId}&limit=1`);
+    const existing = await SB.get('nh_config', `?limit=1`);
     if(existing && existing.length > 0){
       const row = existing[0];
-      const r = await fetch(`${SUPABASE_URL}/rest/v1/nh_config?key=eq.${encodeURIComponent(row.key)}&hotel_id=eq.${activeHotelId}`, {
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/nh_config?key=eq.${encodeURIComponent(row.key)}`, {
         method:'PATCH',
         headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json','Prefer':'return=representation'},
         body: JSON.stringify({value: row.value})
@@ -2624,21 +2667,26 @@ async function runDiagnostics(){
       results.push({
         label:'PATCH (actualizar config existente)',
         ok: r.ok,
-        detail: r.ok ? `✓ HTTP ${r.status} · ${Date.now()-t3}ms` : `✗ HTTP ${r.status} — PATCH no permitido`,
+        detail: r.ok ? `✓ HTTP ${r.status} · ${Date.now()-t3}ms` : `✗ HTTP ${r.status}`,
         type:'write'
       });
     } else {
-      results.push({ label:'PATCH (actualizar config existente)', ok:true, detail:'Sin filas existentes — se usará POST', type:'write' });
+      results.push({ label:'PATCH (actualizar config existente)', ok:true, detail:'Sin filas — se usará POST al guardar', type:'write' });
     }
   } catch(e) {
     results.push({ label:'PATCH (actualizar config existente)', ok:false, detail:`${e.message}`, type:'write' });
   }
 
-  // 5. Realtime status
+  // 6. Realtime — wait up to 3s for channels to be ready
+  let rtOk = false;
+  for(let i=0; i<6; i++){
+    if(realtimeChannels && realtimeChannels.length > 0){ rtOk=true; break; }
+    await new Promise(r=>setTimeout(r,500));
+  }
   results.push({
     label:'WebSocket Realtime',
-    ok: !!(realtimeChannels && realtimeChannels.length > 0),
-    detail: (realtimeChannels && realtimeChannels.length > 0) ? `✓ ${realtimeChannels.length} canales activos` : '✗ Sin canales — recarga la página',
+    ok: rtOk,
+    detail: rtOk ? `✓ ${realtimeChannels.length} canales activos` : '✗ Sin canales — prueba recargar la página',
     type:'realtime'
   });
 
@@ -2953,24 +3001,35 @@ async function saveConfig(){
     {key:'app_name', value:appNameVal},
     ...keys.map(k=>({key:'color_'+k, value:document.getElementById('cfg-'+k)?.value||''})).filter(u=>u.value)
   ];
-  try{
-    // Load existing config rows to know which ones to PATCH vs POST
-    const existing = await SB.get('nh_config', `?hotel_id=eq.${activeHotelId}`);
-    const existingKeys = new Set((existing||[]).map(r=>r.key));
+  try {
+    // Detect if hotel_id column exists by checking first read
+    let hasHotelId = false;
+    let existing = [];
+    try {
+      existing = await SB.get('nh_config', `?hotel_id=eq.${activeHotelId}`) || [];
+      hasHotelId = true;
+    } catch(e) {
+      // Column doesn't exist yet — read all rows
+      existing = await SB.get('nh_config', ``) || [];
+      hasHotelId = false;
+    }
+    const existingKeys = new Set(existing.map(r=>r.key));
+
     for(const u of allUpdates){
-      const body = {...u, hotel_id: activeHotelId};
+      const body = hasHotelId ? {...u, hotel_id: activeHotelId} : {...u};
+      const filter = hasHotelId
+        ? `?key=eq.${encodeURIComponent(u.key)}&hotel_id=eq.${activeHotelId}`
+        : `?key=eq.${encodeURIComponent(u.key)}`;
       if(existingKeys.has(u.key)){
-        // Update existing row
-        await SB.patch('nh_config', `?key=eq.${encodeURIComponent(u.key)}&hotel_id=eq.${activeHotelId}`, body);
+        await SB.patch('nh_config', filter, body);
       } else {
-        // Insert new row
         await SB.post('nh_config', body);
       }
     }
     toast('✓ Configuración guardada — se aplica en todos los dispositivos');
   } catch(e){
     console.warn('saveConfig error:', e);
-    toast('✗ Error al guardar configuración');
+    toast('✗ Error al guardar: ' + (e.message||e));
   }
 }
 
