@@ -251,6 +251,37 @@ td { padding:13px 16px; font-size: 0.941rem; color:var(--ink); vertical-align:mi
 .notepad-btn:hover { background:var(--forest-light); }
 .notepad-btn.active { background:var(--forest); color:white; border-color:var(--forest); }
 .notepad-editor { min-height:320px; border:1px solid var(--border); border-radius:0 0 var(--radius-sm) var(--radius-sm); padding:16px 18px; font-size:0.95rem; line-height:1.7; color:var(--ink); background:white; outline:none; }
+/* Fullscreen note overlay */
+#note-fullscreen-overlay {
+  display:none; position:fixed; inset:0; z-index:9999;
+  background:white; flex-direction:column;
+  animation: noteFsIn 0.2s ease;
+}
+#note-fullscreen-overlay.open { display:flex; }
+@keyframes noteFsIn { from{opacity:0;transform:scale(0.98)} to{opacity:1;transform:scale(1)} }
+#note-fs-toolbar {
+  display:flex; gap:4px; flex-wrap:wrap; padding:10px 14px;
+  background:var(--forest); border-bottom:1px solid rgba(255,255,255,0.15);
+  align-items:center; position:sticky; top:0; z-index:10;
+}
+#note-fs-toolbar .notepad-btn {
+  background:rgba(255,255,255,0.15); color:white; border-color:rgba(255,255,255,0.25);
+}
+#note-fs-toolbar .notepad-btn:hover { background:rgba(255,255,255,0.3); }
+#note-fs-editor {
+  flex:1; overflow-y:auto; padding:32px 48px;
+  font-family:'Georgia',serif; font-size:17px; line-height:2;
+  color:var(--ink); outline:none;
+}
+#note-fs-status {
+  padding:8px 18px; background:var(--cream); border-top:1px solid var(--border);
+  font-size:11px; color:var(--ink-muted); display:flex; justify-content:space-between; align-items:center;
+}
+@media(max-width:640px){
+  #note-fs-editor { padding:20px 18px; font-size:16px; line-height:1.9; }
+  #note-fs-toolbar { padding:8px 10px; gap:3px; }
+  #note-fs-toolbar .notepad-btn { min-width:32px; height:32px; padding:0 8px; font-size:14px; }
+}
 .notepad-editor:focus { border-color:var(--forest); }
 .notepad-dept-tabs { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px; }
 .notepad-saved { font-size:12px; color:var(--forest); margin-top:6px; opacity:0; transition:opacity 0.5s; }
@@ -1018,6 +1049,10 @@ WHERE id NOT IN (
         <div><div class="page-title">Bloc de Notas</div><div class="page-subtitle" id="notes-subtitle">Notas privadas de tu departamento</div></div>
         <div style="display:flex;gap:8px">
           <button class="btn btn-outline btn-sm" id="notes-save-btn" onclick="saveNote()">💾 Guardar</button>
+          <button class="btn btn-outline btn-sm" id="notes-expand-btn" onclick="openNoteFullscreen()" title="Pantalla completa" style="display:none">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+            <span class="hide-mobile"> Expandir</span>
+          </button>
         </div>
       </div>
       <div id="notes-dept-tabs" class="notepad-dept-tabs"></div>
@@ -1097,6 +1132,36 @@ WHERE id NOT IN (
     </div>
 
   </div><!-- /main -->
+
+  <!-- FULLSCREEN NOTE OVERLAY -->
+  <div id="note-fullscreen-overlay">
+    <div id="note-fs-toolbar">
+      <!-- Title -->
+      <span id="note-fs-title" style="font-size:13px;font-weight:700;color:white;margin-right:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px"></span>
+      <div style="width:1px;height:22px;background:rgba(255,255,255,0.25);margin:0 4px;flex-shrink:0"></div>
+      <!-- Format buttons -->
+      <button class="notepad-btn" onclick="noteCmd('bold','fs')" title="Negrita" style="font-weight:800;min-width:32px;height:32px;padding:0 8px"><b>B</b></button>
+      <button class="notepad-btn" onclick="noteCmd('italic','fs')" title="Cursiva" style="min-width:32px;height:32px;padding:0 8px"><i>I</i></button>
+      <button class="notepad-btn" onclick="noteCmd('underline','fs')" title="Subrayado" style="min-width:32px;height:32px;padding:0 8px"><u>U</u></button>
+      <div style="width:1px;height:22px;background:rgba(255,255,255,0.25);margin:0 4px;flex-shrink:0"></div>
+      <button class="notepad-btn" onclick="noteCmd('insertUnorderedList','fs')" title="Lista" style="min-width:32px;height:32px;padding:0 8px">•</button>
+      <button class="notepad-btn" onclick="noteHighlight('#fef9c3','fs')" title="Resaltar amarillo" style="background:#fef9c3;border:2px solid #d4b800;width:26px;height:26px"></button>
+      <button class="notepad-btn" onclick="noteHighlight('#fee2e2','fs')" title="Resaltar rojo" style="background:#fee2e2;border:2px solid #fca5a5;width:26px;height:26px"></button>
+      <button class="notepad-btn" onclick="noteHighlight('#dcfce7','fs')" title="Resaltar verde" style="background:#dcfce7;border:2px solid #86efac;width:26px;height:26px"></button>
+      <button class="notepad-btn" onclick="noteCmd('removeFormat','fs')" title="Quitar formato" style="min-width:32px;height:32px;padding:0 8px;font-size:14px">✕</button>
+      <button class="notepad-btn" onclick="noteCmd('undo','fs')" title="Deshacer" style="min-width:32px;height:32px;padding:0 8px">↩</button>
+      <!-- Spacer -->
+      <div style="flex:1"></div>
+      <!-- Save + close -->
+      <button class="btn btn-sm" onclick="saveNoteFullscreen()" style="background:white;color:var(--forest);font-weight:700;border:none;height:34px;padding:0 14px;border-radius:8px;cursor:pointer;flex-shrink:0">💾 Guardar</button>
+      <button class="btn btn-sm" onclick="closeNoteFullscreen()" style="background:rgba(255,255,255,0.15);color:white;border:1px solid rgba(255,255,255,0.3);height:34px;padding:0 14px;border-radius:8px;cursor:pointer;flex-shrink:0;margin-left:4px">✕ Cerrar</button>
+    </div>
+    <div id="note-fs-editor" contenteditable="true" spellcheck="true"></div>
+    <div id="note-fs-status">
+      <span id="note-fs-saved-label">Sin cambios</span>
+      <span style="color:var(--forest);font-weight:600">Noctis Hub · Bloc de Notas</span>
+    </div>
+  </div>
 
   <!-- Mobile bottom nav -->
   <div class="mobile-nav">
@@ -1454,6 +1519,18 @@ function doLogout(){
 }
 
 // ── STARTUP ──────────────────────────────────────────────────
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Escape'){
+    const fs = document.getElementById('note-fullscreen-overlay');
+    if(fs && fs.classList.contains('open')){ closeNoteFullscreen(); }
+  }
+  // Ctrl+S / Cmd+S to save in fullscreen
+  if((e.ctrlKey||e.metaKey) && e.key==='s'){
+    const fs = document.getElementById('note-fullscreen-overlay');
+    if(fs && fs.classList.contains('open')){ e.preventDefault(); saveNoteFullscreen(); }
+  }
+});
+
 window.addEventListener('DOMContentLoaded', async () => {
   // Try to load from Supabase in background (login works regardless)
   try { await loadAllData(); } catch(e) {}
@@ -2267,6 +2344,8 @@ function renderNotes(){
       btn.addEventListener('click', function(){ notesDept=d; renderNotes(); });
       tabs.appendChild(btn);
     });
+    const expandBtn2 = document.getElementById('notes-expand-btn');
+    if(expandBtn2) expandBtn2.style.display = notesDept==='SA' ? '' : 'none';
     if(notesDept === 'SA'){
       const saNote = NOTES['SA'];
       saView.innerHTML = `
@@ -2276,7 +2355,10 @@ function renderNotes(){
           >${saNote ? saNote.content : ''}</div>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
           <span style="font-size:0.75rem;color:var(--ink-muted)">${saNote && saNote.updatedAt ? 'Guardado: '+new Date(saNote.updatedAt).toLocaleString('es-ES') : 'Sin guardar aún'}</span>
-          <button class="btn btn-green btn-sm" onclick="saveSANote()">💾 Guardar</button>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-outline btn-sm" onclick="openNoteFullscreen()">⛶ Expandir</button>
+            <button class="btn btn-green btn-sm" onclick="saveSANote()">💾 Guardar</button>
+          </div>
         </div>`;
     } else {
       const usersInDept = USERS.filter(u => u.dept === notesDept && u.active !== false);
@@ -2314,6 +2396,8 @@ function renderNotes(){
     editor.style.display = '';
     if(toolbar) toolbar.style.display = '';
     subtitle.textContent = 'Tu bloc personal + la nota del administrador';
+    const expandBtn = document.getElementById('notes-expand-btn');
+    if(expandBtn) expandBtn.style.display = '';
     tabs.innerHTML = '';
     if(!notesDept) notesDept = 'my';
     const saTab = document.createElement('div');
@@ -2326,6 +2410,7 @@ function renderNotes(){
     myTab.innerHTML = '✏️ Mi nota';
     myTab.addEventListener('click', function(){ saveNote(true); notesDept='my'; renderNotes(); });
     tabs.appendChild(myTab);
+    const expandBtnEmp = document.getElementById('notes-expand-btn');
     if(notesDept==='SA'){
       const saNote = NOTES['SA'];
       editor.innerHTML = saNote && saNote.content ? saNote.content : '<em style="color:var(--ink-muted)">El administrador no ha escrito ninguna nota todavía</em>';
@@ -2335,6 +2420,7 @@ function renderNotes(){
       lastSaved.textContent = saNote && saNote.updatedAt ? 'Publicado: '+new Date(saNote.updatedAt).toLocaleString('es-ES') : '';
       if(saveBtn) saveBtn.style.display = 'none';
       if(toolbar) toolbar.style.display = 'none';
+      if(expandBtnEmp) expandBtnEmp.style.display = 'none';
     } else {
       const noteKey = cu.dept+':'+cu.id;
       const note = NOTES[noteKey];
@@ -2375,6 +2461,71 @@ async function saveNote(silent){
 }
 
 function switchNotesDept(dept){ saveNote(true); notesDept=dept; renderNotes(); }
+
+// ── FULLSCREEN NOTE ───────────────────────────────────────────
+let _noteFs = { active: false, key: null, isSA: false };
+
+function openNoteFullscreen(){
+  const overlay = document.getElementById('note-fullscreen-overlay');
+  const fsEditor = document.getElementById('note-fs-editor');
+  const fsTitle = document.getElementById('note-fs-title');
+  const fsSaved = document.getElementById('note-fs-saved-label');
+  if(!overlay || !fsEditor) return;
+  // Determine current note context
+  if(cu.role === 'SUPER_ADMIN'){
+    _noteFs.key = 'SA';
+    _noteFs.isSA = true;
+    fsTitle.textContent = 'Mi nota (Super Admin)';
+    const saEl = document.getElementById('sa-own-editor');
+    fsEditor.innerHTML = saEl ? saEl.innerHTML : (NOTES['SA']?.content || '');
+  } else {
+    _noteFs.key = cu.dept+':'+cu.id;
+    _noteFs.isSA = false;
+    fsTitle.textContent = cu.name + ' — ' + cu.dept;
+    const mainEditor = document.getElementById('notepad-editor');
+    fsEditor.innerHTML = mainEditor ? mainEditor.innerHTML : (NOTES[_noteFs.key]?.content || '');
+  }
+  const note = NOTES[_noteFs.key];
+  fsSaved.textContent = note?.updatedAt ? 'Último guardado: '+new Date(note.updatedAt).toLocaleString('es-ES') : 'Sin guardar aún';
+  overlay.classList.add('open');
+  // Focus editor after animation
+  setTimeout(()=>{ fsEditor.focus(); const r=document.createRange();const s=window.getSelection();r.selectNodeContents(fsEditor);r.collapse(false);s.removeAllRanges();s.addRange(r); }, 250);
+  // Auto-save on input
+  fsEditor._autoSave = setInterval(()=>{ if(fsEditor.innerHTML !== _noteFs._lastSaved){ saveNoteFullscreen(true); } }, 30000);
+  _noteFs._lastSaved = fsEditor.innerHTML;
+}
+
+async function saveNoteFullscreen(silent){
+  const fsEditor = document.getElementById('note-fs-editor');
+  const fsSaved = document.getElementById('note-fs-saved-label');
+  if(!fsEditor || !_noteFs.key) return;
+  const content = fsEditor.innerHTML;
+  await persistNote(_noteFs.key, content, cu.name);
+  _noteFs._lastSaved = content;
+  const now = new Date().toLocaleString('es-ES');
+  if(fsSaved) fsSaved.textContent = 'Guardado: '+now;
+  // Sync back to main editor
+  const mainEditor = document.getElementById('notepad-editor');
+  const saEditor = document.getElementById('sa-own-editor');
+  if(_noteFs.isSA && saEditor) saEditor.innerHTML = content;
+  else if(mainEditor) mainEditor.innerHTML = content;
+  const lastSavedEl = document.getElementById('notepad-last-saved');
+  if(lastSavedEl) lastSavedEl.textContent = 'Último guardado: '+now;
+  if(!silent) toast('✓ Nota guardada');
+}
+
+async function closeNoteFullscreen(){
+  const overlay = document.getElementById('note-fullscreen-overlay');
+  const fsEditor = document.getElementById('note-fs-editor');
+  if(fsEditor._autoSave){ clearInterval(fsEditor._autoSave); fsEditor._autoSave=null; }
+  // Save before closing
+  await saveNoteFullscreen(true);
+  overlay.classList.remove('open');
+  renderNotes();
+}
+
+// Override noteCmd to support fullscreen editor target
+const _origNoteCmd = typeof noteCmd === 'function' ? noteCmd : null;
 
 function openNoteModal(key, userName, canEdit){
   const note = NOTES[key];
