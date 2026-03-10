@@ -525,8 +525,8 @@ input, select, textarea { max-width:100%; }
 .modal-close { background:none; border:none; cursor:pointer; padding:4px; color:var(--ink-muted); border-radius:6px; transition:background 0.15s; display:flex; align-items:center; justify-content:center; }
 .modal-close:hover { background:var(--cream); color:var(--ink); }
 .modal-body { padding:22px 26px; flex:1; overflow-y:auto; }
-.modal-foot { padding:14px 22px 20px; border-top:1px solid var(--cream-dark); display:flex; justify-content:flex-end; gap:8px; flex-shrink:0; flex-wrap:wrap; }
-.modal-foot .btn { font-size:0.82rem; padding:7px 13px; }
+.modal-foot { padding:14px 22px 20px; border-top:1px solid var(--cream-dark); display:flex; justify-content:flex-end; gap:7px; flex-shrink:0; flex-wrap:wrap; }
+.modal-foot .btn { font-size:0.8rem; padding:6px 12px; }
 
 /* ── Mobile logout button in mobile nav ── */
 .mob-nav-logout { color:#8b1a1a !important; }
@@ -2367,8 +2367,9 @@ function populateAssignedSelect(selectedIds){
 function editIncident(id){
   const inc=INCIDENTS.find(i=>i.id===id);
   if(!inc)return;
-  const canEdit=cu.role==='SUPER_ADMIN'||(cu.role==='ADMIN'&&inc.dept===cu.dept)||(cu.role==='EMPLOYEE'&&inc.by==cu.id);
-  if(!canEdit){toast('✗ Solo puedes editar las incidencias que tú creaste');return;}
+  // Only superadmin, admin of same dept, or the creator can edit
+  const canEdit=cu.role==='SUPER_ADMIN'||(cu.role==='ADMIN'&&inc.dept===cu.dept)||(cu.role==='EMPLOYEE'&&inc.dept===cu.dept);
+  if(!canEdit){toast('✗ No tienes permiso para editar esta incidencia');return;}
   document.getElementById('inc-f-id').value=id;
   document.getElementById('inc-f-title').value=inc.title;
   document.getElementById('inc-f-prio').value=inc.prio;
@@ -2447,8 +2448,8 @@ async function saveIncident(){
 async function quickStatus(id, status) {
   const inc = INCIDENTS.find(x => x.id===id);
   if (!inc) return;
-  const canEdit=cu.role==='SUPER_ADMIN'||(cu.role==='ADMIN'&&inc.dept===cu.dept)||(cu.role==='EMPLOYEE'&&inc.by==cu.id);
-  if(!canEdit){toast('✗ Solo puedes modificar las incidencias que tú creaste');return;}
+  const canEdit=cu.role==='SUPER_ADMIN'||(cu.role==='ADMIN'&&inc.dept===cu.dept)||(cu.role==='EMPLOYEE'&&inc.dept===cu.dept);
+  if(!canEdit){toast('✗ No tienes permiso para cambiar el estado');return;}
   inc.status = status;
   inc.history.push({ date: nowStr(), text: `Estado cambiado a ${status} por ${cu.name}` });
   try {
@@ -2474,7 +2475,6 @@ async function deleteIncident(id){
     toast('✓ Incidencia eliminada');
   }catch(e){toast('✗ Error al eliminar');}
 }
-
 function renderAlarms(){
   const container=document.getElementById('alarms-list');
   const isS=cu.role==='SUPER_ADMIN';
@@ -3763,11 +3763,13 @@ function openIncidentDetail(id){
         <span style="color:var(--ink)">${h.text}</span>
       </div>`).join('')||'<div style="color:var(--ink-muted);font-size:0.82rem;font-style:italic">Sin historial de cambios</div>'}
     </div>`;
-  const canEdit = cu.role==='SUPER_ADMIN' || (cu.role==='ADMIN' && inc.dept===cu.dept) || (cu.role==='EMPLOYEE' && inc.by==cu.id);
-  const canDelete = cu.role==='SUPER_ADMIN' || (cu.role==='ADMIN' && inc.dept===cu.dept);
+  // Empleado edita TODAS las de su dpto | Admin edita las de su dpto | SA edita todas
+  const canEdit=cu.role==='SUPER_ADMIN'||(cu.role==='ADMIN'&&inc.dept===cu.dept)||(cu.role==='EMPLOYEE'&&inc.dept===cu.dept);
+  // Solo Admin y SA pueden eliminar
+  const canDelete=cu.role==='SUPER_ADMIN'||(cu.role==='ADMIN'&&inc.dept===cu.dept);
   document.getElementById('detail-foot').innerHTML=`
     <button class="btn btn-outline" onclick="closeModal('modal-inc-detail')">Cerrar</button>
-    ${canEdit&&inc.status!=='RESUELTA'?`<button class="btn btn-amber" onclick="quickStatus(${inc.id},'EN_PROCESO');closeModal('modal-inc-detail')">→ En Proceso</button>`:''}
+    ${canEdit&&inc.status!=='RESUELTA'?`<button class="btn btn-amber" onclick="quickStatus(${inc.id},'EN_PROCESO');closeModal('modal-inc-detail')">En Proceso</button>`:''}
     ${canEdit&&inc.status!=='RESUELTA'?`<button class="btn btn-green" onclick="quickStatus(${inc.id},'RESUELTA');closeModal('modal-inc-detail')">✓ Resolver</button>`:''}
     ${canEdit?`<button class="btn btn-outline" onclick="editIncident(${inc.id})">✎ Editar</button>`:''}
     ${canDelete?`<button class="btn btn-red" onclick="deleteIncident(${inc.id})">🗑 Eliminar</button>`:''}`;
