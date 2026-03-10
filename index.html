@@ -454,9 +454,9 @@ input, select, textarea { max-width:100%; }
 .chk-item:hover { background:var(--cream); margin:0 -16px; padding-left:16px; padding-right:16px; border-radius:6px; }
 .chk-box { width:20px; height:20px; min-width:20px; max-width:20px; flex-shrink:0; border:2px solid var(--border); border-radius:5px; display:flex; align-items:center; justify-content:center; margin-top:1px; transition:all 0.15s; background:white; box-sizing:border-box; }
 .chk-item.done .chk-box { background:var(--forest); border-color:var(--forest); }
-.chk-section-header { padding:14px 0 6px; margin-top:6px; border-bottom:2px solid var(--forest); margin-bottom:4px; }
-.chk-section-header:first-child { margin-top:0; padding-top:6px; }
-.chk-section-title { font-weight:700; font-size:0.82rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--forest); }
+.chk-section-header { padding:12px 0 3px; margin-top:4px; border-bottom:2px solid var(--forest); margin-bottom:2px; }
+.chk-section-header:first-child { padding-top:4px; margin-top:0; }
+.chk-section-title { font-weight:700; font-size:0.77rem; text-transform:uppercase; letter-spacing:0.07em; color:var(--forest); }
 .chk-text { font-size:0.88rem; color:var(--ink); line-height:1.4; flex:1; }
 .chk-text.done { text-decoration:line-through; color:var(--ink-muted); }
 .chk-meta-text { font-size:0.75rem; color:var(--ink-muted); margin-top:3px; }
@@ -1192,10 +1192,10 @@ WHERE id NOT IN (
       <label class="form-label">Departamento</label>
       <select class="form-select" id="tf-dept"></select>
       <label class="form-label">Turno</label>
-      <select class="form-select" id="tf-shift"><option>Turno Mañana</option><option>Turno Tarde</option><option>Turno Noche</option><option>Diario</option><option>Apertura</option><option>Cierre</option><option>Semanal</option></select>
+      <select class="form-select" id="tf-shift"><option>Turno Mañana</option><option>Turno Tarde</option><option>Turno Noche</option><option>Diario</option><option>Apertura</option><option>Cierre</option><option>Semanal</option><option>Mensual</option></select>
       <label class="form-label">Items del checklist (uno por línea, sin límite de texto)</label>
-      <textarea class="form-textarea" id="tf-items" rows="10" style="min-height:180px" placeholder="## Verificación Inicial&#10;Revisar reservas del día en el PMS&#10;Preparar llaves y carpetas de bienvenida&#10;## Personalización&#10;Preparar habitación VIP&#10;Bebida de bienvenida según preferencias"></textarea>
-      <div style="font-size:0.75rem;color:var(--ink-muted);margin-top:6px">💡 Escribe <strong>## Título</strong> para añadir un separador de sección (sin checkbox)</div>
+      <textarea class="form-textarea" id="tf-items" rows="10" style="min-height:180px" placeholder="Revisar reservas del día en el PMS&#10;Preparar llaves y carpetas de bienvenida&#10;Comprobar cobros pendientes del día anterior"></textarea>
+      <div style="font-size:0.75rem;color:var(--ink-muted);margin-top:5px">💡 Escribe <strong>## Título</strong> en una línea para añadir un separador de sección (sin checkbox)</div>
     </div>
     <div class="modal-foot">
       <button class="btn btn-outline" onclick="closeModal('modal-template')">Cancelar</button>
@@ -1786,23 +1786,41 @@ function renderChecklists(){
     </div>`).join('');
 }
 
+// Calcula la "fecha de referencia" según el tipo de checklist:
+// - Diario y turnos: fecha de hoy → se resetea cada día a las 00:00
+// - Semanal: lunes de la semana actual → se resetea cada lunes
+// - Mensual: primer día del mes actual → se resetea el día 1 de cada mes
+function getChkDate(shift){
+  const now = new Date();
+  const today = now.toISOString().slice(0,10);
+  if(shift==='Semanal'){
+    const day = now.getDay(); // 0=dom, 1=lun...
+    const diff = (day===0) ? -6 : 1-day; // retroceder al lunes
+    const mon = new Date(now); mon.setDate(now.getDate()+diff);
+    return mon.toISOString().slice(0,10);
+  }
+  if(shift==='Mensual'){
+    return today.slice(0,8)+'01';
+  }
+  return today; // diario, turnos, apertura, cierre...
+}
+
 function renderChkCard(t,today){
+  const chkDate = getChkDate(t.shift);
   const isS=cu.role==='SUPER_ADMIN';
   const isA=cu.role==='ADMIN';
-  // Calcular done solo sobre items reales (no títulos ##)
+  // done/pct solo sobre items reales (no títulos ##)
   const realItems = t.items.map((item,i)=>({item,i})).filter(({item})=>!item.startsWith('##'));
-  const done=realItems.filter(({i})=>CHK[`${t.id}-${today}-${i}`]).length;
+  const done=realItems.filter(({i})=>CHK[`${t.id}-${chkDate}-${i}`]).length;
   const pct=realItems.length?Math.round(done/realItems.length*100):0;
-
   const items=t.items.map((item,i)=>{
     // Título de sección — sin checkbox
     if(item.startsWith('##')){
-      const title = item.replace(/^##\s*/,'');
+      const title=item.replace(/^##\s*/,'');
       return `<div class="chk-section-header"><div class="chk-section-title">${title}</div></div>`;
     }
-    const ck=`${t.id}-${today}-${i}`;
+    const ck=`${t.id}-${chkDate}-${i}`;
     const c=CHK[ck];
-    // Super admin can toggle, others can toggle own dept
     const canToggle=isS||(cu.dept===t.dept);
     return `<div class="chk-item${c?' done':''}" ${canToggle?`onclick="toggleChk('${ck}')"`:'style="cursor:default"'}>
       <span class="chk-box">${c?'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>':''}</span>
@@ -1815,7 +1833,7 @@ function renderChkCard(t,today){
 
   return `<div class="card">
     <div class="card-header">
-      <div><div class="card-title">${t.name}</div><div style="font-size:11px;color:var(--ink-muted);margin-top:3px">${t.shift} · ${done}/${t.items.length} completados</div></div>
+      <div><div class="card-title">${t.name}</div><div style="font-size:11px;color:var(--ink-muted);margin-top:3px">${t.shift} · ${done}/${realItems.length} completados</div></div>
       <div style="display:flex;gap:8px;align-items:center">
         <span class="badge ${pct===100?'badge-green':pct>0?'badge-amber':'badge-gray'}">${pct}%</span>
         ${(isS||isA)?`<button class="btn btn-outline btn-sm" onclick="editTemplate(${t.id})"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#2e4a1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>`:''}
@@ -3036,13 +3054,18 @@ async function switchToHotel(id){
 async function loadHotelData(){
   const hid = activeHotelId;
   const today = new Date().toISOString().slice(0,10);
+  const weekStart = getChkDate('Semanal');
+  const monthStart = today.slice(0,8)+'01';
+  // Fechas únicas a cargar (hoy puede coincidir con weekStart o monthStart)
+  const datesToLoad = [...new Set([today, weekStart, monthStart])];
   try {
-    const [users, templates, incidents, alarms, checklists] = await Promise.all([
+    const chkQueries = datesToLoad.map(d => SB.get('nh_checklist', `?hotel_id=eq.${hid}&date=eq.${d}`));
+    const [users, templates, incidents, alarms, ...chkResults] = await Promise.all([
       SB.get('nh_users',     `?hotel_id=eq.${hid}&order=id`),
       SB.get('nh_templates', `?hotel_id=eq.${hid}&order=id`),
       SB.get('nh_incidents', `?hotel_id=eq.${hid}&order=id.desc`),
       SB.get('nh_alarms',    `?hotel_id=eq.${hid}&order=id.desc`),
-      SB.get('nh_checklist', `?hotel_id=eq.${hid}&date=eq.${today}`),
+      ...chkQueries,
     ]);
     if(users     && users.length)     USERS     = users.map(u=>({...u}));
     else USERS = [];
@@ -3053,9 +3076,12 @@ async function loadHotelData(){
     if(alarms    && alarms.length)    ALARMS    = alarms.map(a=>({...a, time:a.alarm_time}));
     else ALARMS = [];
     CHK = {};
-    if(checklists) checklists.forEach(row=>{
-      const key=`${row.template_id}-${row.date}-${row.item_index}`;
-      CHK[key]={user:row.user_name, time:row.completed_at?new Date(row.completed_at).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}):'', dbId:row.id};
+    chkResults.forEach(rows=>{
+      if(!rows) return;
+      rows.forEach(row=>{
+        const key=`${row.template_id}-${row.date}-${row.item_index}`;
+        CHK[key]={user:row.user_name, time:row.completed_at?new Date(row.completed_at).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}):'', dbId:row.id};
+      });
     });
     // Rebuild IDS counters
     if(USERS.length)      IDS.user  = Math.max(...USERS.map(u=>u.id))+1;
