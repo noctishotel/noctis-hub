@@ -999,7 +999,7 @@ WHERE id NOT IN (
       <div class="page-header">
         <div><div class="page-title">Bloc de Notas</div><div class="page-subtitle" id="notes-subtitle">Notas privadas de tu departamento</div></div>
         <div style="display:flex;gap:8px">
-          <button class="btn btn-outline btn-sm" id="btn-notes-save" onclick="saveNote()">💾 Guardar</button>
+          <button class="btn btn-outline btn-sm" id="notes-save-btn" onclick="saveNote()">💾 Guardar</button>
         </div>
       </div>
       <div id="notes-dept-tabs" class="notepad-dept-tabs"></div>
@@ -2072,175 +2072,208 @@ async function loadNotes(){
   }
 }
 
+// ── NOTES HELPERS ──────────────────────────────────────────────
+async function persistNote(key, content){
+  try{
+    const enc = encodeURIComponent(key);
+    const existing = await SB.get('nh_notes', `?dept=eq.${enc}&hotel_id=eq.${activeHotelId}`);
+    const body = {dept:key, content:content, updated_at:new Date().toISOString(), hotel_id:activeHotelId};
+    if(existing && existing.length > 0){
+      await SB.patch('nh_notes', `?dept=eq.${enc}&hotel_id=eq.${activeHotelId}`, body);
+    } else {
+      await SB.post('nh_notes', body);
+    }
+    NOTES[key] = {content:content, updatedAt: new Date().toISOString()};
+  }catch(e){ console.warn('Notes save error:', e); }
+}
+
+async function deleteNoteByKey(key){
+  try{
+    const enc = encodeURIComponent(key);
+    await SB.delete('nh_notes', `?dept=eq.${enc}&hotel_id=eq.${activeHotelId}`);
+    delete NOTES[key];
+  }catch(e){ console.warn('Notes delete error:', e); }
+}
+
 function renderNotes(){
   const isS = cu.role==='SUPER_ADMIN';
   const subtitle = document.getElementById('notes-subtitle');
   const tabs = document.getElementById('notes-dept-tabs');
   const allDepts = ['Recepción','Housekeeping','Mantenimiento','F&B','Administración','Dirección'];
-  const D_LABELS = {Recepción:'🛎️',Housekeeping:'🛏️',Mantenimiento:'🔧','F&B':'☕',Administración:'📁',Dirección:'🏠'};
+  const D_LABELS = {'Recepción':'🛎️','Housekeeping':'🛏️','Mantenimiento':'🔧','F&B':'☕','Administración':'📁','Dirección':'🏠'};
   const saView = document.getElementById('notes-sa-view');
   const editor = document.getElementById('notepad-editor');
   const toolbar = document.getElementById('notepad-toolbar-wrap');
   const lastSaved = document.getElementById('notepad-last-saved');
+  const saveBtn = document.getElementById('notes-save-btn');
 
   if(isS){
-    // SA mode: show sa-view, hide editor and toolbar
     saView.style.display = 'block';
     editor.style.display = 'none';
     if(toolbar) toolbar.style.display = 'none';
+    if(saveBtn) saveBtn.style.display = 'none';
     lastSaved.textContent = '';
-
-    subtitle.textContent = 'Notas privadas de cada empleado — solo lectura';
-    if(!notesDept || !allDepts.includes(notesDept)) notesDept = allDepts[0];
+    subtitle.textContent = 'Tu bloc + notas de cada empleado por departamento';
+    if(!notesDept || !['SA',...allDepts].includes(notesDept)) notesDept = 'SA';
     tabs.innerHTML = '';
+    const saBtn = document.createElement('div');
+    saBtn.className = 'chip' + (notesDept==='SA' ? ' active' : '');
+    saBtn.innerHTML = '📋 Mi nota';
+    saBtn.addEventListener('click', function(){ notesDept='SA'; renderNotes(); });
+    tabs.appendChild(saBtn);
     allDepts.forEach(function(d){
       const btn = document.createElement('div');
       btn.className = 'chip' + (notesDept===d ? ' active' : '');
-      btn.textContent = (D_LABELS[d]||'📝') + ' ' + d;
+      btn.textContent = (D_LABELS[d]||'📝')+' '+d;
       btn.addEventListener('click', function(){ notesDept=d; renderNotes(); });
       tabs.appendChild(btn);
     });
-
-    const usersInDept = USERS.filter(u => u.dept === notesDept);
-    if(!usersInDept.length){
-      saView.innerHTML = `<div style="color:var(--ink-muted);font-style:italic;padding:20px 0">Sin empleados en este departamento</div>`;
-      return;
-    }
-
-    let html = '';
-    usersInDept.forEach(function(u){
-      const key = u.dept + ':' + u.id;
-      const note = NOTES[key];
-      const hasNote = note && note.content && note.content.replace(/<[^>]*>/g,'').trim();
-      const safeKey = key.replace(/'/g,"\\'");
-      const safeName = u.name.replace(/'/g,"\\'");
-      html += `<div style="margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--cream-dark)">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-          <div style="width:34px;height:34px;border-radius:50%;background:${D_COLORS[u.dept]||'#2e4a1e'};display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:0.85rem;flex-shrink:0">${u.name[0]}</div>
-          <div style="flex:1;min-width:0">
-            <div style="font-weight:600;font-size:0.9rem">${u.name}</div>
-            <div style="font-size:0.72rem;color:var(--ink-muted)">${note && note.updatedAt ? 'Actualizado: '+new Date(note.updatedAt).toLocaleString('es-ES') : 'Sin notas aún'}</div>
+    if(notesDept === 'SA'){
+      const saNote = NOTES['SA'];
+      saView.innerHTML = `
+        <div style="margin-bottom:12px;font-size:0.82rem;color:var(--ink-muted)">Esta nota la verán todos tus empleados en su bloc.</div>
+        <div id="sa-own-editor" contenteditable="true" spellcheck="true"
+          style="min-height:300px;padding:20px 24px;font-size:15px;line-height:1.9;outline:none;background:white;font-family:'Georgia',serif;color:#1a1208;border:1px solid var(--border);border-radius:8px"
+          >${saNote ? saNote.content : ''}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
+          <span style="font-size:0.75rem;color:var(--ink-muted)">${saNote && saNote.updatedAt ? 'Guardado: '+new Date(saNote.updatedAt).toLocaleString('es-ES') : 'Sin guardar aún'}</span>
+          <button class="btn btn-green btn-sm" onclick="saveSANote()">💾 Guardar</button>
+        </div>`;
+    } else {
+      const usersInDept = USERS.filter(u => u.dept === notesDept);
+      if(!usersInDept.length){ saView.innerHTML = `<div style="color:var(--ink-muted);font-style:italic;padding:20px 0">Sin empleados en este departamento</div>`; return; }
+      let html = '';
+      usersInDept.forEach(function(u){
+        const key = u.dept+':'+u.id;
+        const note = NOTES[key];
+        const hasNote = note && note.content && note.content.replace(/<[^>]*>/g,'').trim();
+        const safeKey = key.replace(/'/g,"\\'");
+        const safeName = u.name.replace(/'/g,"\\'");
+        html += `<div style="margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--cream-dark)">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+            <div style="width:34px;height:34px;border-radius:50%;background:${D_COLORS[u.dept]||'#2e4a1e'};display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:0.85rem;flex-shrink:0">${u.name[0]}</div>
+            <div style="flex:1;min-width:0">
+              <div style="font-weight:600;font-size:0.9rem">${u.name}</div>
+              <div style="font-size:0.72rem;color:var(--ink-muted)">${note && note.updatedAt ? 'Actualizado: '+new Date(note.updatedAt).toLocaleString('es-ES') : 'Sin notas aún'}</div>
+            </div>
+            <div style="display:flex;gap:6px;flex-shrink:0">
+              <button class="btn btn-outline btn-sm" onclick="openNoteModal('${safeKey}','${safeName}',true)">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg> Abrir
+              </button>
+            </div>
           </div>
-          ${hasNote ? `<button class="btn btn-outline btn-sm" onclick="openNoteModal('${safeKey}','${safeName}')" style="flex-shrink:0;gap:5px">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg> Abrir
-          </button>` : ''}
-        </div>
-        ${hasNote
-          ? `<div style="font-size:0.85rem;line-height:1.7;background:var(--cream);border-radius:8px;padding:12px 14px;max-height:100px;overflow:hidden;position:relative;pointer-events:none;user-select:none">
-              ${note.content}
-              <div style="position:absolute;bottom:0;left:0;right:0;height:36px;background:linear-gradient(transparent,var(--cream));border-radius:0 0 8px 8px;pointer-events:none"></div>
-            </div>`
-          : `<div style="font-size:0.82rem;color:var(--ink-muted);font-style:italic;padding:4px 0">Este empleado no ha escrito ninguna nota</div>`
-        }
-      </div>`;
-    });
-    saView.innerHTML = html;
-
+          ${hasNote
+            ? `<div style="font-size:0.85rem;line-height:1.7;background:var(--cream);border-radius:8px;padding:12px 14px;max-height:80px;overflow:hidden;position:relative;pointer-events:none;user-select:none">${note.content}<div style="position:absolute;bottom:0;left:0;right:0;height:32px;background:linear-gradient(transparent,var(--cream));border-radius:0 0 8px 8px"></div></div>`
+            : `<div style="font-size:0.82rem;color:var(--ink-muted);font-style:italic;padding:4px 0">Sin notas aún</div>`
+          }
+        </div>`;
+      });
+      saView.innerHTML = html;
+    }
   } else {
-    // Employee mode: show editor, hide sa-view
     saView.style.display = 'none';
     editor.style.display = '';
     if(toolbar) toolbar.style.display = '';
-
-    subtitle.textContent = 'Tu bloc de notas personal — solo tú y el Super Admin pueden verlo';
+    subtitle.textContent = 'Tu bloc personal + la nota del administrador';
     tabs.innerHTML = '';
-    notesDept = cu.dept;
-    const noteKey = cu.dept + ':' + cu.id;
-    const note = NOTES[noteKey];
-    editor.innerHTML = note ? note.content : '';
-    lastSaved.textContent = note && note.updatedAt ? 'Último guardado: '+new Date(note.updatedAt).toLocaleString('es-ES') : 'Sin guardar aún';
-    editor.setAttribute('contenteditable','true');
+    if(!notesDept) notesDept = 'my';
+    const saTab = document.createElement('div');
+    saTab.className = 'chip' + (notesDept==='SA' ? ' active' : '');
+    saTab.innerHTML = '📋 Nota Admin';
+    saTab.addEventListener('click', function(){ saveNote(true); notesDept='SA'; renderNotes(); });
+    tabs.appendChild(saTab);
+    const myTab = document.createElement('div');
+    myTab.className = 'chip' + (notesDept!=='SA' ? ' active' : '');
+    myTab.innerHTML = '✏️ Mi nota';
+    myTab.addEventListener('click', function(){ saveNote(true); notesDept='my'; renderNotes(); });
+    tabs.appendChild(myTab);
+    if(notesDept==='SA'){
+      const saNote = NOTES['SA'];
+      editor.innerHTML = saNote && saNote.content ? saNote.content : '<em style="color:var(--ink-muted)">El administrador no ha escrito ninguna nota todavía</em>';
+      editor.setAttribute('contenteditable','false');
+      editor.style.background = 'var(--cream)';
+      editor.style.cursor = 'default';
+      lastSaved.textContent = saNote && saNote.updatedAt ? 'Publicado: '+new Date(saNote.updatedAt).toLocaleString('es-ES') : '';
+      if(saveBtn) saveBtn.style.display = 'none';
+      if(toolbar) toolbar.style.display = 'none';
+    } else {
+      const noteKey = cu.dept+':'+cu.id;
+      const note = NOTES[noteKey];
+      editor.innerHTML = note ? note.content : '';
+      editor.setAttribute('contenteditable','true');
+      editor.style.background = 'white';
+      editor.style.cursor = 'text';
+      lastSaved.textContent = note && note.updatedAt ? 'Último guardado: '+new Date(note.updatedAt).toLocaleString('es-ES') : 'Sin guardar aún';
+      if(saveBtn) saveBtn.style.display = '';
+      if(toolbar) toolbar.style.display = '';
+    }
   }
 }
 
-function switchNotesDept(dept){
-  saveNote(true);
-  notesDept = dept;
-  renderNotes();
-}
-
-function openNoteModal(key, userName){
-  const note = NOTES[key];
-  if(!note) return;
-  document.getElementById('modal-note-view-title').textContent = userName;
-  document.getElementById('modal-note-view-sub').textContent = note.updatedAt ? 'Última edición: ' + new Date(note.updatedAt).toLocaleString('es-ES') : '';
-  document.getElementById('modal-note-view-content').innerHTML = note.content;
-  openModal('modal-note-view');
-}
-
-function noteCmd(cmd, arg1, arg2){
-  document.getElementById('notepad-editor').focus();
-  if(arg1 !== undefined) document.execCommand(cmd, false, arg2 || null);
-  else document.execCommand(cmd, false, null);
-}
-
-function toggleNoteToolbar(){
-  const el = document.getElementById('note-extra-toolbar');
+async function saveSANote(){
+  const el = document.getElementById('sa-own-editor');
   if(!el) return;
-  const isVisible = el.style.display === 'flex';
-  el.style.display = isVisible ? 'none' : 'flex';
-  // Close on click outside
-  if(!isVisible){
-    setTimeout(()=>{
-      function closeIt(e){ if(!el.contains(e.target)){ el.style.display='none'; document.removeEventListener('click',closeIt); } }
-      document.addEventListener('click', closeIt);
-    }, 10);
-  }
-}
-
-function noteHighlight(color){
-  document.getElementById('notepad-editor').focus();
-  document.execCommand('hiliteColor', false, color);
-}
-
-function noteFontFamily(font){
-  if(!font) return;
-  document.getElementById('notepad-editor').focus();
-  document.execCommand('fontName', false, font);
-}
-
-function noteForeColor(color){
-  document.getElementById('notepad-editor').focus();
-  document.execCommand('foreColor', false, color);
-}
-
-function onNoteInput(){
-  clearTimeout(_noteAutoSave);
-  _noteAutoSave = setTimeout(function(){saveNote(true);}, 3000);
+  await persistNote('SA', el.innerHTML);
+  renderNotes();
+  toast('✓ Nota guardada');
 }
 
 async function saveNote(silent){
-  if(!notesDept) return;
-  // SA doesn't edit notes — they're read-only for SA
-  if(cu.role==='SUPER_ADMIN') return;
+  if(!cu || cu.role==='SUPER_ADMIN') return;
+  if(notesDept==='SA') return;
   const editorEl = document.getElementById('notepad-editor');
   if(!editorEl) return;
   const noteContent = editorEl.innerHTML;
-  const noteKey = cu.dept + ':' + cu.id;  // always per-user key
-  NOTES[noteKey] = {content:noteContent, updatedAt: new Date().toISOString()};
-  try{
-    // Check if row exists first, then PATCH or POST
-    const existing = await SB.get('nh_notes', `?dept=eq.${encodeURIComponent(noteKey)}&hotel_id=eq.${activeHotelId}`);
-    const body = {dept:noteKey, content:noteContent, updated_at:new Date().toISOString(), hotel_id:activeHotelId};
-    if(existing && existing.length > 0){
-      await SB.patch('nh_notes', `?dept=eq.${encodeURIComponent(noteKey)}&hotel_id=eq.${activeHotelId}`, body);
-    } else {
-      await SB.post('nh_notes', body);
-    }
-  }catch(e){ console.warn('Notes save error:', e); }
-  const savedEl = document.getElementById('notepad-saved');
+  const noteKey = cu.dept+':'+cu.id;
+  await persistNote(noteKey, noteContent);
   const lastSaved = document.getElementById('notepad-last-saved');
-  lastSaved.textContent = 'Último guardado: '+new Date().toLocaleString('es-ES');
+  if(lastSaved) lastSaved.textContent = 'Último guardado: '+new Date().toLocaleString('es-ES');
   if(!silent){
-    savedEl.classList.add('show');
-    setTimeout(function(){savedEl.classList.remove('show');},2000);
-    toast('\u2713 Nota guardada');
-  } else {
-    savedEl.classList.add('show');
-    setTimeout(function(){savedEl.classList.remove('show');},1500);
+    const savedEl = document.getElementById('notepad-saved');
+    if(savedEl){ savedEl.classList.add('show'); setTimeout(function(){savedEl.classList.remove('show');},2000); }
+    toast('✓ Nota guardada');
   }
 }
 
+function switchNotesDept(dept){ saveNote(true); notesDept=dept; renderNotes(); }
+
+function openNoteModal(key, userName, canEdit){
+  const note = NOTES[key];
+  document.getElementById('modal-note-view-title').textContent = userName;
+  document.getElementById('modal-note-view-sub').textContent = note && note.updatedAt ? 'Última edición: '+new Date(note.updatedAt).toLocaleString('es-ES') : 'Sin notas aún';
+  const contentEl = document.getElementById('modal-note-view-content');
+  const safeKey = key.replace(/'/g,"\\'");
+  const safeName = userName.replace(/'/g,"\\'");
+  if(canEdit && cu && cu.role==='SUPER_ADMIN'){
+    contentEl.innerHTML = `<div id="modal-note-editor" contenteditable="true" spellcheck="true"
+      style="min-height:200px;padding:16px 18px;font-size:15px;line-height:1.9;outline:none;background:white;font-family:'Georgia',serif;color:#1a1208;border:1px solid var(--border);border-radius:8px"
+      >${note ? note.content : ''}</div>
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px">
+        ${note && note.content && note.content.replace(/<[^>]*>/g,'').trim() ? `<button class="btn btn-red btn-sm" onclick="deleteEmployeeNote('${safeKey}','${safeName}')">🗑 Borrar nota</button>` : ''}
+        <button class="btn btn-green btn-sm" onclick="saveEmployeeNoteFromModal('${safeKey}','${safeName}')">💾 Guardar cambios</button>
+      </div>`;
+  } else {
+    contentEl.innerHTML = note && note.content ? `<div style="font-size:0.92rem;line-height:1.8">${note.content}</div>` : `<div style="color:var(--ink-muted);font-style:italic">Sin contenido</div>`;
+  }
+  openModal('modal-note-view');
+}
+
+async function saveEmployeeNoteFromModal(key, userName){
+  const el = document.getElementById('modal-note-editor');
+  if(!el) return;
+  await persistNote(key, el.innerHTML);
+  toast('✓ Nota de '+userName+' guardada');
+  closeModal('modal-note-view');
+  renderNotes();
+}
+
+async function deleteEmployeeNote(key, userName){
+  if(!confirm('¿Borrar la nota de '+userName+'? Esta acción no se puede deshacer.')) return;
+  await deleteNoteByKey(key);
+  toast('✓ Nota de '+userName+' borrada');
+  closeModal('modal-note-view');
+  renderNotes();
+}
 
 // ══════════════════════════════════════════════════════════════
 // INCIDENTS
@@ -2334,7 +2367,7 @@ function editIncident(id){
   const inc=INCIDENTS.find(i=>i.id===id);
   if(!inc)return;
   // Only superadmin, admin of same dept, or the creator can edit
-  const canEdit=cu.role==='SUPER_ADMIN'||(cu.role==='ADMIN'&&inc.dept===cu.dept)||inc.by===cu.id;
+  const canEdit=cu.role==='SUPER_ADMIN'||(cu.role==='ADMIN'&&inc.dept===cu.dept)||inc.by==cu.id;
   if(!canEdit){toast('✗ No tienes permiso para editar esta incidencia');return;}
   document.getElementById('inc-f-id').value=id;
   document.getElementById('inc-f-title').value=inc.title;
@@ -2409,7 +2442,7 @@ async function saveIncident(){
 async function quickStatus(id, status) {
   const inc = INCIDENTS.find(x => x.id===id);
   if (!inc) return;
-  const canEdit=cu.role==='SUPER_ADMIN'||(cu.role==='ADMIN'&&inc.dept===cu.dept)||inc.by===cu.id;
+  const canEdit=cu.role==='SUPER_ADMIN'||(cu.role==='ADMIN'&&inc.dept===cu.dept)||inc.by==cu.id;
   if(!canEdit){toast('✗ No tienes permiso para cambiar el estado');return;}
   inc.status = status;
   inc.history.push({ date: nowStr(), text: `Estado cambiado a ${status} por ${cu.name}` });
@@ -3710,7 +3743,7 @@ function openIncidentDetail(id){
         <span style="color:var(--ink)">${h.text}</span>
       </div>`).join('')||'<div style="color:var(--ink-muted);font-size:0.82rem;font-style:italic">Sin historial de cambios</div>'}
     </div>`;
-  const canEdit=cu.role==='SUPER_ADMIN'||cu.role==='ADMIN'||inc.by===cu.id;
+  const canEdit=cu.role==='SUPER_ADMIN'||cu.role==='ADMIN'||inc.by==cu.id;
   document.getElementById('detail-foot').innerHTML=`
     <button class="btn btn-outline" onclick="closeModal('modal-inc-detail')">Cerrar</button>
     ${canEdit&&inc.status!=='RESUELTA'?`<button class="btn btn-amber" onclick="quickStatus(${inc.id},'EN_PROCESO');closeModal('modal-inc-detail')">→ En Proceso</button>`:''}
