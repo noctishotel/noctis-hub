@@ -1005,7 +1005,7 @@ WHERE id NOT IN (
       <div id="notes-dept-tabs" class="notepad-dept-tabs"></div>
       <div style="background:white;border:1px solid var(--border);border-radius:12px;overflow:hidden;min-height:calc(100vh - 280px);display:flex;flex-direction:column;box-shadow:0 4px 24px rgba(0,0,0,0.08)">
         <!-- Toolbar — compact dropdown -->
-        <div id="notepad-toolbar" style="padding:8px 14px;border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;gap:5px;align-items:center;background:#fafaf7;position:sticky;top:0;z-index:10">
+        <div id="notepad-toolbar-wrap" id="notepad-toolbar" style="padding:8px 14px;border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;gap:5px;align-items:center;background:#fafaf7;position:sticky;top:0;z-index:10">
           <!-- Format buttons -->
           <button class="notepad-btn" onclick="noteCmd('bold')" title="Negrita" style="font-weight:800;min-width:30px;height:30px;padding:0 8px"><b>B</b></button>
           <button class="notepad-btn" onclick="noteCmd('italic')" title="Cursiva" style="min-width:30px;height:30px;padding:0 8px"><i>I</i></button>
@@ -2051,32 +2051,73 @@ function renderNotes(){
   const isS = cu.role==='SUPER_ADMIN';
   const subtitle = document.getElementById('notes-subtitle');
   const tabs = document.getElementById('notes-dept-tabs');
-  const D_LABELS = {Recepción:'🛎️',Housekeeping:'🛏️',Mantenimiento:'🔧','F&B':'☕',Administración:'📁',Dirección:'🏠'};
   const allDepts = ['Recepción','Housekeeping','Mantenimiento','F&B','Administración','Dirección'];
-  // Each user has their own note key: "dept:userId" — SA sees dept keys (shared dept notes)
-  const myKey = isS ? null : cu.dept + ':' + cu.id;
-  const availableDepts = isS ? allDepts : [cu.dept];
+  const D_LABELS = {Recepción:'🛎️',Housekeeping:'🛏️',Mantenimiento:'🔧','F&B':'☕',Administración:'📁',Dirección:'🏠'};
+
   if(isS){
-    subtitle.textContent = 'Como Super Admin puedes ver los blocs de todos los departamentos';
+    // SA: tabs = departments, inside shows each user's note for that dept
+    subtitle.textContent = 'Notas privadas de cada empleado — solo lectura para Super Admin';
+    if(!notesDept || !allDepts.includes(notesDept)) notesDept = allDepts[0];
+    tabs.innerHTML = '';
+    allDepts.forEach(function(d){
+      const btn = document.createElement('div');
+      btn.className = 'chip' + (notesDept===d ? ' active' : '');
+      btn.textContent = (D_LABELS[d]||'📝') + ' ' + d;
+      btn.addEventListener('click', function(){ switchNotesDept(d); });
+      tabs.appendChild(btn);
+    });
+
+    // Show all users from this dept with their notes
+    const editor = document.getElementById('notepad-editor');
+    const lastSaved = document.getElementById('notepad-last-saved');
+    const toolbar = document.getElementById('notepad-toolbar-wrap');
+    if(toolbar) toolbar.style.display = 'none'; // SA can't edit others' notes
+
+    const usersInDept = USERS.filter(u => u.dept === notesDept);
+    if(!usersInDept.length){
+      editor.innerHTML = `<div style="color:var(--ink-muted);font-style:italic;padding:12px 0">Sin empleados en este departamento</div>`;
+      lastSaved.textContent = '';
+      return;
+    }
+
+    let html = '';
+    usersInDept.forEach(function(u){
+      const key = u.dept + ':' + u.id;
+      const note = NOTES[key];
+      const hasNote = note && note.content && note.content.replace(/<[^>]*>/g,'').trim();
+      html += `<div style="margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--cream-dark)">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+          <div style="width:32px;height:32px;border-radius:50%;background:${D_COLORS[u.dept]||'#2e4a1e'};display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:0.85rem;flex-shrink:0">${u.name[0]}</div>
+          <div>
+            <div style="font-weight:600;font-size:0.9rem">${u.name}</div>
+            <div style="font-size:0.72rem;color:var(--ink-muted)">${note && note.updatedAt ? 'Actualizado: '+new Date(note.updatedAt).toLocaleString('es-ES') : 'Sin notas aún'}</div>
+          </div>
+        </div>
+        ${hasNote
+          ? `<div style="font-size:0.85rem;line-height:1.7;background:var(--cream);border-radius:8px;padding:12px 14px">${note.content}</div>`
+          : `<div style="font-size:0.82rem;color:var(--ink-muted);font-style:italic;padding:8px 0">Este empleado no ha escrito ninguna nota</div>`
+        }
+      </div>`;
+    });
+    editor.innerHTML = html;
+    lastSaved.textContent = '';
+
   } else {
-    subtitle.textContent = 'Tu bloc de notas personal de ' + cu.dept + ' — solo tú puedes verlo';
+    // Employee: sees only their own note
+    subtitle.textContent = 'Tu bloc de notas personal — solo tú y el Super Admin pueden verlo';
+    tabs.innerHTML = ''; // no tabs for employees
+    const toolbar = document.getElementById('notepad-toolbar-wrap');
+    if(toolbar) toolbar.style.display = '';
+
+    notesDept = cu.dept;
+    const noteKey = cu.dept + ':' + cu.id;
+    const note = NOTES[noteKey];
+    const editor = document.getElementById('notepad-editor');
+    const lastSaved = document.getElementById('notepad-last-saved');
+    editor.innerHTML = note ? note.content : '';
+    lastSaved.textContent = note && note.updatedAt ? 'Último guardado: '+new Date(note.updatedAt).toLocaleString('es-ES') : 'Sin guardar aún';
+    editor.setAttribute('contenteditable','true');
   }
-  if(!notesDept || !availableDepts.includes(notesDept)) notesDept = availableDepts[0];
-  tabs.innerHTML = '';
-  availableDepts.forEach(function(d){
-    const btn = document.createElement('div');
-    btn.className = 'chip' + (notesDept===d ? ' active' : '');
-    btn.textContent = (D_LABELS[d]||'📝') + ' ' + d;
-    btn.addEventListener('click', function(){ switchNotesDept(d); });
-    tabs.appendChild(btn);
-  });
-  const editor = document.getElementById('notepad-editor');
-  // Key: for SA use dept, for others use dept:userId
-  const noteKey = isS ? notesDept : (cu.dept + ':' + cu.id);
-  const note = NOTES[noteKey];
-  editor.innerHTML = note ? note.content : '';
-  const lastSaved = document.getElementById('notepad-last-saved');
-  lastSaved.textContent = note && note.updatedAt ? 'Último guardado: '+new Date(note.updatedAt).toLocaleString('es-ES') : 'Sin guardar aún';
 }
 
 function switchNotesDept(dept){
@@ -2128,11 +2169,12 @@ function onNoteInput(){
 
 async function saveNote(silent){
   if(!notesDept) return;
+  // SA doesn't edit notes — they're read-only for SA
+  if(cu.role==='SUPER_ADMIN') return;
   const editorEl = document.getElementById('notepad-editor');
   if(!editorEl) return;
   const noteContent = editorEl.innerHTML;
-  const isS = cu.role==='SUPER_ADMIN';
-  const noteKey = isS ? notesDept : (cu.dept + ':' + cu.id);
+  const noteKey = cu.dept + ':' + cu.id;  // always per-user key
   NOTES[noteKey] = {content:noteContent, updatedAt: new Date().toISOString()};
   try{
     await SB.upsert('nh_notes', {dept:noteKey, content:noteContent, updated_at:new Date().toISOString()});
