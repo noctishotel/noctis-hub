@@ -449,8 +449,11 @@ input, select, textarea { max-width:100%; }
 .inc-title-text { font-size:0.9rem; font-weight:600; margin-bottom:4px; }
 
 /* ── CHECKLIST ── */
-.chk-box { display:flex; align-items:flex-start; gap:10px; padding:10px 0; border-bottom:1px solid var(--cream-dark); }
-.chk-box:last-child { border-bottom:none; }
+.chk-item { display:flex; align-items:flex-start; gap:12px; padding:12px 0; border-bottom:1px solid var(--cream-dark); cursor:pointer; transition:background 0.12s; }
+.chk-item:last-child { border-bottom:none; }
+.chk-item:hover { background:var(--cream); margin:0 -16px; padding-left:16px; padding-right:16px; border-radius:6px; }
+.chk-box { width:20px; height:20px; min-width:20px; border:2px solid var(--border); border-radius:5px; display:flex; align-items:center; justify-content:center; margin-top:1px; transition:all 0.15s; background:white; }
+.chk-item.done .chk-box { background:var(--forest); border-color:var(--forest); color:white; font-size:13px; font-weight:700; }
 .chk-text { font-size:0.88rem; color:var(--ink); line-height:1.4; flex:1; }
 .chk-text.done { text-decoration:line-through; color:var(--ink-muted); }
 .chk-meta-text { font-size:0.75rem; color:var(--ink-muted); margin-top:3px; }
@@ -1772,9 +1775,9 @@ function renderChkCard(t,today){
     // Super admin can toggle, others can toggle own dept
     const canToggle=isS||(cu.dept===t.dept);
     return `<div class="chk-item${c?' done':''}" ${canToggle?`onclick="toggleChk('${ck}')"`:'style="cursor:default"'}>
-      <div class="chk-box">${c?'✓':''}</div>
+      <div class="chk-box">${c?'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>':''}</div>
       <div style="flex:1">
-        <div class="chk-text">${item}</div>
+        <div class="chk-text${c?' done':''}">${item}</div>
         ${c?`<div class="chk-meta-text"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#2e4a1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><polyline points="20 6 9 17 4 12"/></svg> ${c.user} · ${c.time}</div>`:''}
       </div>
     </div>`;
