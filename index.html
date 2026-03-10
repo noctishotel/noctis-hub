@@ -572,6 +572,7 @@ td { padding:13px 16px; font-size: 0.941rem; color:var(--ink); vertical-align:mi
         <div><div class="page-title">Incidencias</div><div class="page-subtitle">Gestión y seguimiento de incidencias</div></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button class="btn btn-outline" onclick="downloadReport('incidencias','csv')" title="Exportar listado"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#2e4a1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg> CSV</button>
+              <button class="btn btn-outline" onclick="downloadReport('incidencias','excel')" style="border-color:#217346;color:#217346">📊 Excel</button>
           <button class="btn btn-outline" onclick="downloadReport('incidencias','pdf')" title="Descargar PDF"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#2e4a1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> PDF</button>
           <button class="btn btn-green" onclick="openNewIncident()">+ Nueva Incidencia</button>
         </div>
@@ -639,6 +640,7 @@ td { padding:13px 16px; font-size: 0.941rem; color:var(--ink); vertical-align:mi
             <div style="display:flex;gap:8px;flex-wrap:wrap">
               <button class="btn btn-green" onclick="downloadReport('checklists','pdf')"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#2e4a1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Descargar PDF</button>
               <button class="btn btn-outline" onclick="downloadReport('checklists','csv')"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#2e4a1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg> Exportar CSV</button>
+              <button class="btn btn-outline" onclick="downloadReport('checklists','excel')" style="border-color:#217346;color:#217346">📊 Excel</button>
             </div>
           </div>
         </div>
@@ -662,6 +664,7 @@ td { padding:13px 16px; font-size: 0.941rem; color:var(--ink); vertical-align:mi
             <div style="display:flex;gap:8px;flex-wrap:wrap">
               <button class="btn btn-green" onclick="downloadReport('empleados','pdf')"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#2e4a1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Descargar PDF</button>
               <button class="btn btn-outline" onclick="downloadReport('empleados','csv')"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#2e4a1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg> Exportar CSV</button>
+              <button class="btn btn-outline" onclick="downloadReport('empleados','excel')" style="border-color:#217346;color:#217346">📊 Excel</button>
             </div>
           </div>
         </div>
@@ -673,6 +676,7 @@ td { padding:13px 16px; font-size: 0.941rem; color:var(--ink); vertical-align:mi
             <div style="display:flex;gap:8px;flex-wrap:wrap">
               <button class="btn btn-green" onclick="downloadReport('departamentos','pdf')"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#2e4a1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Descargar PDF</button>
               <button class="btn btn-outline" onclick="downloadReport('departamentos','csv')"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#2e4a1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg> Exportar CSV</button>
+              <button class="btn btn-outline" onclick="downloadReport('departamentos','excel')" style="border-color:#217346;color:#217346">📊 Excel</button>
               <button class="btn btn-outline" onclick="exportToSheets('departamentos')" style="border-color:#0f9d58;color:#0f9d58"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#0f9d58" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><circle cx="12" cy="12" r="9"/></svg> Google Sheets</button>
             </div>
           </div>
@@ -685,6 +689,7 @@ td { padding:13px 16px; font-size: 0.941rem; color:var(--ink); vertical-align:mi
             <div style="display:flex;gap:8px;flex-wrap:wrap">
               <button class="btn btn-green" onclick="downloadReport('semanal','pdf')"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#2e4a1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Descargar PDF</button>
               <button class="btn btn-outline" onclick="downloadReport('semanal','csv')"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#2e4a1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg> Exportar CSV</button>
+              <button class="btn btn-outline" onclick="downloadReport('semanal','excel')" style="border-color:#217346;color:#217346">📊 Excel</button>
             </div>
           </div>
         </div>
@@ -696,6 +701,7 @@ td { padding:13px 16px; font-size: 0.941rem; color:var(--ink); vertical-align:mi
             <div style="display:flex;gap:8px;flex-wrap:wrap">
               <button class="btn btn-green" onclick="downloadReport('mensual','pdf')"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#2e4a1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Descargar PDF</button>
               <button class="btn btn-outline" onclick="downloadReport('mensual','csv')"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#2e4a1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg> Exportar CSV</button>
+              <button class="btn btn-outline" onclick="downloadReport('mensual','excel')" style="border-color:#217346;color:#217346">📊 Excel</button>
             </div>
           </div>
         </div>
@@ -981,19 +987,17 @@ td { padding:13px 16px; font-size: 0.941rem; color:var(--ink); vertical-align:mi
   </div>
 </div>
 
-<!-- Report viewer (used on iPad/mobile instead of window.open) -->
-<div class="modal-ov" id="modal-report" style="z-index:1100">
-  <div class="modal-box" style="max-width:900px;width:96%;max-height:96vh;display:flex;flex-direction:column">
-    <div class="modal-head" style="flex-shrink:0">
-      <div class="modal-title" id="modal-report-title">Informe</div>
-      <div style="display:flex;gap:8px;align-items:center">
-        <button class="btn btn-green btn-sm" onclick="printReportModal()">🖨️ Imprimir / PDF</button>
-        <button class="modal-close" onclick="closeModal('modal-report')"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#2e4a1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-      </div>
+<!-- Report viewer (fullscreen on iPad/mobile) -->
+<div id="modal-report" style="display:none;position:fixed;inset:0;z-index:2000;background:white;flex-direction:column">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:2px solid #d6c9b0;background:#f5f0e8;flex-shrink:0">
+    <div style="font-size:1rem;font-weight:700;color:#2e4a1e" id="modal-report-title">Informe</div>
+    <div style="display:flex;gap:10px;align-items:center">
+      <button class="btn btn-green btn-sm" onclick="printReportModal()">🖨️ Imprimir / PDF</button>
+      <button onclick="closeReportModal()" style="background:none;border:none;cursor:pointer;padding:6px;font-size:1.4rem;color:#2e4a1e;line-height:1">✕</button>
     </div>
-    <div style="flex:1;overflow-y:auto;padding:0">
-      <iframe id="report-iframe" style="width:100%;height:100%;min-height:70vh;border:none"></iframe>
-    </div>
+  </div>
+  <div style="flex:1;overflow-y:auto">
+    <iframe id="report-iframe" style="width:100%;height:100%;min-height:calc(100vh - 60px);border:none"></iframe>
   </div>
 </div>
 
@@ -2536,6 +2540,23 @@ function downloadCSV(content,filename){
   setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 }
 
+function downloadExcel(rows, headers, filename){
+  // Build a simple HTML table that Excel opens natively
+  let html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">';
+  html += '<head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Informe</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head><body><table>';
+  html += '<tr>' + headers.map(h=>`<th style="background:#2e4a1e;color:white;font-weight:bold;padding:6px">${h}</th>`).join('') + '</tr>';
+  rows.forEach((row,ri) => {
+    html += '<tr>' + row.map(cell=>`<td style="padding:4px;background:${ri%2===0?'#ffffff':'#f5f0e8'}">${cell===null||cell===undefined?'':String(cell).replace(/<[^>]+>/g,'')}</td>`).join('') + '</tr>';
+  });
+  html += '</table></body></html>';
+  const blob = new Blob([html], {type:'application/vnd.ms-excel;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+
 function downloadReport(type,format){
   const {from,to,label}=getReportDateRange();
   const hotelName=(document.getElementById('cfg-hotel')||{}).value||'Noctis Hotel';
@@ -2623,7 +2644,64 @@ function downloadReport(type,format){
       content=buildCSV(rows,['Departamento','Empleados','Plantillas','% Checklists','Inc. Abiertas','Inc. Resueltas','Inc. Críticas','Tasa Resolución']);
       filename=`noctis-departamentos-${from}.csv`;
     }
-    if(content){downloadCSV(content,filename);toast('✓ Informe descargado');}
+    if(content){downloadCSV(content,filename);toast('✓ Informe descargado CSV');}
+    return;
+  }
+
+  if(format==='excel'){
+    const {from}=getReportDateRange();
+    let rows=[], headers=[], filename='';
+    if(type==='incidencias'){
+      headers=['ID','Título','Descripción','Departamento','Prioridad','Estado','Fecha Apertura','Creada Por','Asignada A','Notas Historial'];
+      rows=incInRange().map(i=>{
+        const assignedIds=i.assigned_to?JSON.parse(i.assigned_to||'[]'):[];
+        const assignedNames=assignedIds.map(id=>{const u=USERS.find(x=>x.id===id);return u?u.name:'?';}).join(', ');
+        const creator=USERS.find(u=>u.id===i.by);
+        const histNotes=(i.history||[]).map(h=>h.text||'').filter(Boolean).join(' | ');
+        return[i.id,i.title,i.desc||'',i.dept,i.prio,i.status,i.at?new Date(i.at).toLocaleDateString('es-ES'):'',creator?creator.name:'',assignedNames,histNotes];
+      });
+      filename='noctis-incidencias-'+from+'.xls';
+    } else if(type==='empleados'){
+      headers=['Empleado','Email','Departamento','Rol','Inc. Creadas','Inc. Resueltas','Tasa Resolución','Inc. Asignadas','Tareas Checklist','% Completado'];
+      rows=USERS.filter(u=>u.active).map(u=>{
+        const myInc=incInRange().filter(i=>i.by===u.id);
+        const incResueltas=myInc.filter(i=>i.status==='RESUELTA').length;
+        const incAsignadas=incInRange().filter(i=>{const ids=i.assigned_to?JSON.parse(i.assigned_to||'[]'):[];return ids.includes(u.id);}).length;
+        const chkDone=Object.values(CHK).filter(c=>c.user===u.name).length;
+        const totalChk=TEMPLATES.filter(t=>t.dept===u.dept).reduce((s,t)=>s+t.items.length,0);
+        const pct=totalChk>0?Math.round(chkDone/totalChk*100):0;
+        const tasa=myInc.length>0?Math.round(incResueltas/myInc.length*100)+'%':'—';
+        return[u.name,u.email,u.dept,roleLabel(u.role),myInc.length,incResueltas,tasa,incAsignadas,chkDone+'/'+totalChk,pct+'%'];
+      });
+      filename='noctis-empleados-'+from+'.xls';
+    } else if(type==='checklists'){
+      headers=['Departamento','Plantilla','Turno','Tarea','Estado','Completado Por','Hora'];
+      rows=TEMPLATES.flatMap(t=>t.items.map((item,i)=>{
+        const ck=CHK[`${t.id}-${from}-${i}`];
+        return[t.dept,t.name,t.shift,item,ck?'Completado':'Pendiente',ck?ck.user:'—',ck?ck.time:'—'];
+      }));
+      filename='noctis-checklists-'+from+'.xls';
+    } else {
+      headers=['Departamento','Personal','Plantillas','% Checklists','Inc. Abiertas','Inc. En Proceso','Inc. Resueltas','Inc. Críticas','Tasa Resolución','Estado'];
+      rows=DEPTS.map(d=>{
+        const tpls=TEMPLATES.filter(t=>t.dept===d);
+        const total=tpls.reduce((s,t)=>s+t.items.length,0);
+        const done=tpls.reduce((s,t)=>s+t.items.filter((_,i)=>CHK[`${t.id}-${from}-${i}`]).length,0);
+        const pct=total?Math.round(done/total*100):0;
+        const di=incInRange().filter(i=>i.dept===d);
+        const staff=USERS.filter(u=>u.dept===d&&u.active).length;
+        const abierta=di.filter(i=>i.status==='ABIERTA').length;
+        const enProceso=di.filter(i=>i.status==='EN_PROCESO').length;
+        const res=di.filter(i=>i.status==='RESUELTA').length;
+        const crit=di.filter(i=>i.prio==='CRITICA'&&i.status!=='RESUELTA').length;
+        const tr=di.length?Math.round(res/di.length*100):100;
+        const estado=crit>0?'⚠ Crítico':abierta>3?'Atención':pct<50?'Revisar':'✓ Operativo';
+        return[d,staff,tpls.length,pct+'%',abierta,enProceso,res,crit,tr+'%',estado];
+      });
+      filename='noctis-departamentos-'+from+'.xls';
+    }
+    downloadExcel(rows,headers,filename);
+    toast('✓ Excel descargado');
     return;
   }
 
@@ -2832,8 +2910,8 @@ function downloadReport(type,format){
     document.getElementById('modal-report-title').textContent = reportTitle;
     const iframe = document.getElementById('report-iframe');
     iframe.srcdoc = reportHTML;
-    window._reportHTML = reportHTML;
-    openModal('modal-report');
+    const rm = document.getElementById('modal-report');
+    rm.style.display = 'flex';
   } else {
     const w = window.open('','_blank');
     if(!w){ toast('✗ El navegador bloqueó la ventana emergente'); return; }
@@ -2849,6 +2927,10 @@ function printReportModal(){
   if(iframe && iframe.contentWindow){
     iframe.contentWindow.print();
   }
+}
+function closeReportModal(){
+  const rm = document.getElementById('modal-report');
+  if(rm) rm.style.display = 'none';
 }
 function exportToSheets(type){
   const {from,label}=getReportDateRange();
