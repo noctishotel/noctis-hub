@@ -1046,10 +1046,19 @@ WHERE id NOT IN (
           <button class="btn btn-outline btn-sm" onclick="downloadReport('checklists','sheets')" style="border-color:#0f9d58;color:#0f9d58">⬇ Google Sheets</button>
         </div>
       </div>
-      <div style="margin-bottom:16px;display:flex;gap:10px;flex-wrap:wrap">
-        <select class="form-select" id="arc-dept-sel" onchange="renderArchive()" style="margin-bottom:0;min-width:170px"></select>
-        <input type="date" class="form-input" id="arc-date-from" style="margin-bottom:0;width:auto" onchange="renderArchive()">
-        <input type="date" class="form-input" id="arc-date-to" style="margin-bottom:0;width:auto" onchange="renderArchive()">
+      <div style="margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <select class="form-select" id="arc-dept-sel" onchange="renderArchive()" style="margin-bottom:0;min-width:150px"></select>
+        <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
+          <label style="font-size:0.78rem;color:var(--ink-muted);white-space:nowrap">Desde</label>
+          <input type="date" class="form-input" id="arc-date-from" style="margin-bottom:0;width:auto" onchange="renderArchive()">
+        </div>
+        <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
+          <label style="font-size:0.78rem;color:var(--ink-muted);white-space:nowrap">Hasta</label>
+          <input type="date" class="form-input" id="arc-date-to" style="margin-bottom:0;width:auto" onchange="renderArchive()">
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="arcSetRange(0)" style="flex-shrink:0">Hoy</button>
+        <button class="btn btn-outline btn-sm" onclick="arcSetRange(7)" style="flex-shrink:0">7 días</button>
+        <button class="btn btn-outline btn-sm" onclick="arcSetRange(30)" style="flex-shrink:0">30 días</button>
       </div>
       <div id="archive-content"></div>
     </div>
@@ -1729,7 +1738,7 @@ function navTo(page,el){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById('page-'+page).classList.add('active');
   closeSidebar();
-  const renders={dashboard:renderDashboard,checklists:renderChecklists,incidents:renderIncidents,alarms:renderAlarms,team:renderTeam,reports:function(){ renderReportStats(); },admin:renderAdmin,hotels:renderHotels,archive:renderArchive,notes:function(){ loadNotes().then(function(){ renderNotes(); }); }};
+  const renders={dashboard:renderDashboard,checklists:renderChecklists,incidents:renderIncidents,alarms:renderAlarms,team:renderTeam,reports:function(){ renderReportStats(); },admin:renderAdmin,hotels:renderHotels,archive:function(){ arcSetRange(7); },notes:function(){ loadNotes().then(function(){ renderNotes(); }); }};
   if(renders[page])renders[page]();
 }
 
@@ -2196,84 +2205,109 @@ function saveArchiveSnapshot(){
 // ══════════════════════════════════════════════════════════════
 // ARCHIVE
 // ══════════════════════════════════════════════════════════════
-function renderArchive(){
+function arcSetRange(days){
+  const to=new Date().toISOString().slice(0,10);
+  const from=days===0?to:(()=>{const d=new Date();d.setDate(d.getDate()-(days-1));return d.toISOString().slice(0,10);})();
+  const fromEl=document.getElementById('arc-date-from');
+  const toEl=document.getElementById('arc-date-to');
+  if(fromEl) fromEl.value=from;
+  if(toEl) toEl.value=to;
+  renderArchive();
+}
+
+async function renderArchive(){
   const deptSel=document.getElementById('arc-dept-sel')?document.getElementById('arc-dept-sel').value:'Todos';
   const fromDate=document.getElementById('arc-date-from')?document.getElementById('arc-date-from').value:'';
   const toDate=document.getElementById('arc-date-to')?document.getElementById('arc-date-to').value:'';
   const container=document.getElementById('archive-content');
   const isS=cu.role==='SUPER_ADMIN';
-  const isA=cu.role==='ADMIN';
 
-  // Load from Supabase checklist history
+  // Default: last 7 days if no filter set
   const today=new Date().toISOString().slice(0,10);
+  const defFrom=fromDate||(()=>{const d=new Date();d.setDate(d.getDate()-6);return d.toISOString().slice(0,10);})();
+  const defTo=toDate||today;
 
-  // Group CHK by date
-  const byDate={};
-  Object.entries(CHK).forEach(([key,val])=>{
-    const [tplId,date,idx]=key.split('-');
-    if(!byDate[date]) byDate[date]=[];
-    byDate[date].push({tplId,idx:parseInt(idx),user:val.user,time:val.time});
-  });
+  container.innerHTML=`<div style="padding:20px;text-align:center;color:var(--ink-muted)">🔄 Cargando historial...</div>`;
 
-  // Also include ARCHIVE snapshots
-  Object.entries(ARCHIVE).forEach(([date,entries])=>{
-    if(!byDate[date]) byDate[date]=[];
-  });
+  try {
+    // Build Supabase query with date range
+    let q=`?hotel_id=eq.${activeHotelId}&date=gte.${defFrom}&date=lte.${defTo}&order=date.desc`;
+    const rows = await SB.get('nh_checklist', q);
 
-  const allDates=Object.keys(byDate).sort().reverse().filter(d=>{
-    if(fromDate&&d<fromDate) return false;
-    if(toDate&&d>toDate) return false;
-    return true;
-  });
+    if(!rows || !rows.length){
+      container.innerHTML=`<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">Sin registros en este período</div><div class="empty-sub">${defFrom===defTo?'No hay datos para el '+new Date(defFrom+'T12:00').toLocaleDateString('es-ES'):'No hay datos del '+new Date(defFrom+'T12:00').toLocaleDateString('es-ES')+' al '+new Date(defTo+'T12:00').toLocaleDateString('es-ES')}</div></div>`;
+      return;
+    }
 
-  if(!allDates.length){
-    container.innerHTML=`<div class="empty"><div class="empty-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#2e4a1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg></div><div class="empty-text">Sin historial disponible</div><div class="empty-sub">Aquí aparecerán los checklists completados de días anteriores</div></div>`;
-    return;
-  }
+    // Group by date
+    const byDate={};
+    rows.forEach(row=>{
+      const key=`${row.template_id}-${row.date}-${row.item_index}`;
+      if(!byDate[row.date]) byDate[row.date]={};
+      byDate[row.date][key]={user:row.user_name, time:row.completed_at?new Date(row.completed_at).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}):'', dbId:row.id};
+    });
 
-  container.innerHTML=allDates.map(date=>{
-    const dateLabel=new Date(date+'T12:00:00').toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-    let tpls=TEMPLATES;
-    if(!isS) tpls=tpls.filter(t=>t.dept===cu.dept);
-    if(deptSel!=='Todos') tpls=tpls.filter(t=>t.dept===deptSel);
+    const allDates=Object.keys(byDate).sort().reverse();
 
-    const tplRows=tpls.map(t=>{
-      const done=t.items.filter((_,i)=>CHK[`${t.id}-${date}-${i}`]).length;
-      const total=t.items.length;
-      const pct=total?Math.round(done/total*100):0;
-      const pctColor=pct===100?'var(--forest)':pct>0?'var(--amber)':'var(--red)';
-      // Who worked on this template that day
-      const workers=[...new Set(t.items.map((_,i)=>CHK[`${t.id}-${date}-${i}`]?.user).filter(Boolean))];
-      return `<tr>
-        <td><strong>${t.name}</strong><br><small style="color:var(--ink-muted)">${D_ICONS[t.dept]||''} ${t.dept} · ${t.shift}</small></td>
-        <td style="text-align:center;font-weight:700;color:${pctColor}">${done}/${total}</td>
-        <td style="text-align:center;font-weight:700;color:${pctColor}">${pct}%</td>
-        <td style="font-size:0.765rem;color:var(--ink-muted)">${workers.join(', ')||'—'}</td>
-      </tr>`;
+    container.innerHTML=allDates.map(date=>{
+      const chkDay=byDate[date];
+      const dateLabel=new Date(date+'T12:00:00').toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+      let tpls=TEMPLATES;
+      if(!isS) tpls=tpls.filter(t=>t.dept===cu.dept);
+      if(deptSel!=='Todos') tpls=tpls.filter(t=>t.dept===deptSel);
+
+      const tplRows=tpls.map(t=>{
+        const done=t.items.filter((_,i)=>chkDay[`${t.id}-${date}-${i}`]).length;
+        const total=t.items.length;
+        if(done===0) return ''; // skip templates with no activity this day
+        const pct=total?Math.round(done/total*100):0;
+        const pctColor=pct===100?'var(--forest)':pct>0?'var(--amber)':'var(--red)';
+        const workers=[...new Set(t.items.map((_,i)=>chkDay[`${t.id}-${date}-${i}`]?.user).filter(Boolean))];
+        return `<tr>
+          <td style="padding:8px 10px"><strong>${t.name}</strong><br><small style="color:var(--ink-muted)">${D_ICONS[t.dept]||''} ${t.dept} · ${t.shift}</small></td>
+          <td style="padding:8px;text-align:center;font-weight:700;color:${pctColor}">${done}/${total}</td>
+          <td style="padding:8px;text-align:center;font-weight:700;color:${pctColor}">${pct}%</td>
+          <td style="padding:8px;font-size:0.75rem;color:var(--ink-muted)">${workers.join(', ')||'—'}</td>
+        </tr>`;
+      }).join('');
+
+      if(!tplRows.trim()) return '';
+
+      const totalDone=tpls.reduce((s,t)=>s+t.items.filter((_,i)=>chkDay[`${t.id}-${date}-${i}`]).length,0);
+      const totalAll=tpls.reduce((s,t)=>s+t.items.length,0);
+      const dayPct=totalAll?Math.round(totalDone/totalAll*100):0;
+      const dayColor=dayPct===100?'var(--forest)':dayPct>50?'var(--amber)':'var(--red)';
+
+      return `<div class="archive-entry">
+        <div class="archive-entry-head" onclick="this.nextElementSibling.classList.toggle('open')">
+          <div style="flex:1">
+            <div style="font-weight:700;font-size:0.95rem;text-transform:capitalize">${dateLabel}</div>
+            <div style="font-size:0.78rem;color:var(--ink-muted);margin-top:2px">${totalDone} tareas completadas de ${totalAll}</div>
+          </div>
+          <div style="font-weight:800;font-size:1rem;color:${dayColor};flex-shrink:0">${dayPct}%</div>
+          <div style="font-size:0.75rem;color:var(--ink-muted);flex-shrink:0;margin-left:8px">▼</div>
+        </div>
+        <div class="archive-entry-body">
+          <table style="width:100%;border-collapse:collapse;font-size:0.82rem">
+            <thead><tr style="background:var(--cream-dark)">
+              <th style="padding:8px 10px;text-align:left">Plantilla</th>
+              <th style="padding:8px;text-align:center">Tareas</th>
+              <th style="padding:8px;text-align:center">%</th>
+              <th style="padding:8px;text-align:left">Realizado por</th>
+            </tr></thead>
+            <tbody>${tplRows}</tbody>
+          </table>
+        </div>
+      </div>`;
     }).join('');
 
-    if(!tplRows.trim()) return '';
-    const totalDone=tpls.reduce((s,t)=>s+t.items.filter((_,i)=>CHK[`${t.id}-${date}-${i}`]).length,0);
-    const totalAll=tpls.reduce((s,t)=>s+t.items.length,0);
-    const dayPct=totalAll?Math.round(totalDone/totalAll*100):0;
-    const dayColor=dayPct===100?'var(--forest)':dayPct>50?'var(--amber)':'var(--red)';
-
-    return `<div style="margin-bottom:20px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-        <div style="font-weight:700;font-size:1rem;text-transform:capitalize">${dateLabel}</div>
-        <div style="font-weight:700;color:${dayColor};font-size:0.941rem">${dayPct}% completado</div>
-      </div>
-      <table style="width:100%;border-collapse:collapse;font-size:0.824rem">
-        <thead><tr style="background:var(--cream-dark)">
-          <th style="padding:8px;text-align:left">Plantilla</th>
-          <th style="padding:8px;text-align:center">Tareas</th>
-          <th style="padding:8px;text-align:center">%</th>
-          <th style="padding:8px;text-align:left">Realizado por</th>
-        </tr></thead>
-        <tbody>${tplRows}</tbody>
-      </table>
-    </div>`;
-  }).join('');
+    // If after filtering by dept nothing shows
+    if(!container.innerHTML.trim()){
+      container.innerHTML=`<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">Sin actividad en este período</div><div class="empty-sub">No hay checklists con tareas completadas para los filtros seleccionados</div></div>`;
+    }
+  } catch(e) {
+    container.innerHTML=`<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-text">Error al cargar historial</div><div class="empty-sub">${e.message||e}</div></div>`;
+  }
 }
 
 // ══════════════════════════════════════════════════════════════
