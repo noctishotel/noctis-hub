@@ -48,10 +48,15 @@
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 html { font-size: 17px; overscroll-behavior: none; }
 body { font-family:var(--font-body,'DM Sans',sans-serif); background:var(--cream); color:var(--ink); min-height:100vh; overflow-x:hidden; }
-body { transition: background-color .2s ease, color .2s ease; }
 body.app-loading #app { opacity:0; pointer-events:none; }
-body.app-ready #app { opacity:1; pointer-events:auto; transition:opacity .18s ease; }
-body.app-loading .topbar, body.app-loading .sidebar, body.app-loading .main { opacity:0; }
+body.app-ready #app { opacity:1; transition:opacity .18s ease; }
+#app-loading-overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(246,242,233,.96);backdrop-filter:blur(3px);z-index:9999;}
+body.app-loading #app-loading-overlay{display:flex;}
+.loading-shell{display:flex;flex-direction:column;align-items:center;gap:14px;color:var(--forest);text-align:center;padding:24px;}
+.loading-mark{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:700;line-height:1.05;}
+.loading-sub{font-size:.9rem;color:var(--ink-muted);} 
+.loading-spinner{width:34px;height:34px;border-radius:50%;border:3px solid rgba(46,74,30,.15);border-top-color:var(--forest);animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
 
 button { font-family:'DM Sans',sans-serif; cursor:pointer; }
 input, select, textarea { font-family:'DM Sans',sans-serif; }
@@ -354,6 +359,23 @@ td { padding:13px 16px; font-size: 0.941rem; color:var(--ink); vertical-align:mi
 
   /* Tables: horizontal scroll */
   .table-wrap, #dept-table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+#dept-table-wrap table { min-width:680px; table-layout:auto; }
+#dept-table td:first-child, #dept-table th:first-child { white-space:nowrap; min-width:170px; }
+#dept-table td, #dept-table th { white-space:nowrap; }
+#dash-recent-inc .inc-title-text, #inc-list .inc-title-text, .dept-bar-name { word-break:keep-all !important; overflow-wrap:normal !important; hyphens:none !important; }
+.dept-bar-name { white-space:nowrap; }
+@media (max-width:768px){
+  #dept-table-wrap table { min-width:720px; }
+  .card-body, .card-header { padding-left:16px; padding-right:16px; }
+  .page-title { font-size:2.1rem; }
+  .page-subtitle { font-size:0.95rem; }
+  .inc-item { overflow:hidden; }
+  .inc-title-text { font-size:1rem; line-height:1.3; }
+}
+@media (max-width:480px){
+  .page-title { font-size:1.85rem; }
+  .dept-bar-name { font-size:0.78rem; }
+}
   table { min-width:460px; }
   td, thead th { padding:9px 12px; font-size:0.82rem; }
 
@@ -433,25 +455,49 @@ td { padding:13px 16px; font-size: 0.941rem; color:var(--ink); vertical-align:mi
   .dept-bar-pct { font-size:0.75rem; }
 }
 
+
+@media (max-width:1180px){
+  #page-dashboard .grid-2 { grid-template-columns:1fr !important; }
+}
+@media (max-width:1024px){
+  #page-agenda .page-header { align-items:stretch; }
+  #page-agenda .agenda-header-actions { width:100%; justify-content:space-between; }
+}
+.inc-title, .inc-title-text, .dept-bar-name, .card-title, .page-title, .page-subtitle, td, th {
+  word-break:normal !important; overflow-wrap:normal !important; hyphens:none;
+}
+#dept-table td:first-child, #dept-table th:first-child { min-width:150px; }
+#dash-recent-inc .inc-item, #inc-list .inc-item { min-width:0; }
+.agenda-paper{background:#fff; border:1px solid var(--border); border-radius:18px; box-shadow:var(--shadow); overflow:hidden;}
+.agenda-paper-top{padding:18px 22px; border-bottom:1px solid var(--border); background:linear-gradient(180deg,#fff,#fbf8f1);}
+.agenda-date-line{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.agenda-date-title{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:700;color:var(--ink);line-height:1.1;}
+.agenda-date-sub{font-size:.92rem;color:var(--ink-muted);margin-top:4px;}
+.agenda-header-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+.agenda-toolbar{display:flex;gap:6px;flex-wrap:wrap;padding:12px 22px;border-bottom:1px solid var(--border);background:var(--cream);}
+.agenda-editor-wrap{padding:22px;}
+#agenda-editor-html{min-height:420px;outline:none;font-family:'Cormorant Garamond',serif;font-size:1.14rem;line-height:1.85;color:var(--ink);word-break:normal;overflow-wrap:normal;hyphens:none;}
+#agenda-editor-html:empty:before{content:attr(data-placeholder);color:#9c9386;font-style:italic;}
+#agenda-editor-html h2{font-family:'Cormorant Garamond',serif;color:var(--forest);font-size:1.55rem;line-height:1.2;margin:18px 0 10px;font-weight:700;}
+#agenda-editor-html p{margin:0 0 10px;}
+#agenda-editor-html ul, #agenda-editor-html ol{margin:0 0 12px 24px;}
+#agenda-editor-html li{margin:0 0 6px;}
+.agenda-footer-meta{padding:14px 22px;border-top:1px solid var(--border);font-size:.82rem;color:var(--ink-muted);background:#fff;}
+@media (max-width:768px){
+  #page-dashboard .grid-2, #page-dashboard .grid-4 { grid-template-columns:1fr !important; }
+  .kpi-grid { grid-template-columns:1fr !important; }
+  .agenda-paper-top, .agenda-toolbar, .agenda-editor-wrap, .agenda-footer-meta { padding-left:16px; padding-right:16px; }
+  .agenda-date-title { font-size:1.55rem; }
+  #agenda-editor-html { min-height:340px; font-size:1.04rem; line-height:1.75; }
+}
+
 /* ── Global text overflow prevention ── */
 * { box-sizing:border-box; }
-p, span, td, th, label, h1, h2, h3, h4, h5, h6 { max-width:100%; overflow-wrap:normal; word-break:normal; hyphens:none; }
+p, span, td, th, label { max-width:100%; overflow-wrap:normal; word-break:normal; }
+h1, h2, h3, h4 { max-width:100%; overflow-wrap:break-word; word-break:normal; }
 div { max-width:100%; }
 img, svg { max-width:100%; height:auto; }
 input, select, textarea { max-width:100%; }
-
-/* Evitar cortes feos de palabras */
-.card, .card * , .inc-card, .inc-card *, .alarm-item, .alarm-item *, .kpi-card, .kpi-card * { word-break:normal; overflow-wrap:normal; }
-#dept-table-wrap table { min-width:640px; }
-#dept-table td:first-child, #dept-table th:first-child { min-width:160px; white-space:normal; }
-#dept-table td:nth-child(2), #dept-table th:nth-child(2) { min-width:170px; }
-#dept-table td:nth-child(3), #dept-table th:nth-child(3) { min-width:110px; }
-#dept-table td:nth-child(4), #dept-table th:nth-child(4) { min-width:130px; }
-.dept-cell-name, .agenda-title-line, .agenda-page * { word-break:normal !important; overflow-wrap:normal !important; }
-
-@media (max-width:1180px) {
-  .grid-2 { grid-template-columns:1fr !important; }
-}
 
 /* Desktop: show user info in topbar */
 @media (min-width:769px) {
@@ -484,34 +530,6 @@ input, select, textarea { max-width:100%; }
 .chip { display:inline-flex; align-items:center; gap:5px; padding:7px 14px; border-radius:99px; font-size:0.78rem; font-weight:600; cursor:pointer; transition:all 0.15s; background:white; border:1.5px solid var(--border); color:var(--ink-muted); white-space:nowrap; }
 .chip:hover { border-color:var(--forest); color:var(--forest); }
 .chip.active { background:var(--forest); color:white; border-color:var(--forest); }
-
-/* ── AGENDA ── */
-.agenda-shell { display:flex; flex-direction:column; gap:16px; }
-.agenda-topbar { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; }
-.agenda-day-card { background:linear-gradient(180deg,#fffef9 0%, #fbf7ef 100%); border:1px solid var(--border); border-radius:22px; box-shadow:var(--shadow-md); overflow:hidden; }
-.agenda-day-head { padding:18px 22px; border-bottom:1px solid var(--cream-dark); display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; background:rgba(255,255,255,0.78); }
-.agenda-day-meta { display:flex; flex-direction:column; gap:4px; min-width:0; }
-.agenda-weekday { font-size:1.35rem; font-weight:700; color:var(--ink); }
-.agenda-date { font-size:0.95rem; color:var(--ink-muted); }
-.agenda-nav { display:flex; gap:8px; flex-wrap:wrap; }
-.agenda-nav .btn { min-width:auto; }
-.agenda-toolbar { display:flex; gap:6px; flex-wrap:wrap; padding:12px 16px; border-bottom:1px solid var(--cream-dark); background:#f8f4ec; }
-.agenda-editor-wrap { padding:18px 18px 16px; }
-.agenda-page { min-height:520px; background:repeating-linear-gradient(to bottom, #fffdf8 0, #fffdf8 38px, #efe6d8 39px); border:1px solid #e7dbc7; border-radius:18px; padding:24px 24px 28px; font-family:Georgia,serif; line-height:2.05; color:var(--ink); outline:none; box-shadow: inset 0 1px 0 rgba(255,255,255,.8); }
-.agenda-page:focus { border-color:var(--forest); box-shadow:0 0 0 3px rgba(46,74,30,.08), inset 0 1px 0 rgba(255,255,255,.8); }
-.agenda-page h2 { color:var(--forest); font-size:1.08rem; margin:0 0 8px; }
-.agenda-page p { margin:0 0 8px; }
-.agenda-page ul, .agenda-page ol { margin:0 0 8px 20px; }
-.agenda-status { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:0 4px 0; color:var(--ink-muted); font-size:0.8rem; }
-.agenda-user-tabs { margin-bottom:0; }
-@media (max-width:768px) {
-  .agenda-day-head { padding:16px 16px; }
-  .agenda-weekday { font-size:1.15rem; }
-  .agenda-date { font-size:0.88rem; }
-  .agenda-toolbar { padding:10px 12px; gap:5px; }
-  .agenda-page { min-height:420px; padding:18px 16px 22px; line-height:1.9; border-radius:16px; }
-}
-
 
 /* ── URGENT / ALARM BANNERS ── */
 .urgent-banner { display:flex; align-items:flex-start; gap:12px; padding:14px 18px; background:var(--red-light); border:1px solid #f0c0c0; border-radius:var(--radius-sm); margin-bottom:10px; cursor:pointer; transition:background 0.15s; }
@@ -621,25 +639,9 @@ input, select, textarea { max-width:100%; }
 .mob-nav-logout { color:#8b1a1a !important; }
 .mob-nav-logout svg { stroke:#8b1a1a !important; }
 </style>
-
-<script>
-(function(){
-  try {
-    var cfg = JSON.parse(localStorage.getItem('noctis_config_cache_global') || '{}');
-    var root = document.documentElement;
-    var map = {
-      forest:'--forest', topbar:'--topbar-bg', gold:'--gold', red:'--red', cream:'--cream',
-      'forest-light':'--forest-light', amber:'--amber', blue:'--blue', forest2:'--forest-ok', border:'--border'
-    };
-    if(cfg.colors){ Object.keys(cfg.colors).forEach(function(k){ if(map[k]) root.style.setProperty(map[k], cfg.colors[k]); }); }
-    if(cfg.font) root.style.setProperty('--font-body', cfg.font);
-    if(cfg.fontSize) root.style.fontSize = cfg.fontSize + 'px';
-  } catch(e){}
-})();
-</script>
-
 </head>
 <body class="app-loading">
+<div id="app-loading-overlay"><div class="loading-shell"><div class="loading-spinner"></div><div class="loading-mark">Noctis<br>Hub</div><div class="loading-sub">Cargando tu espacio…</div></div></div>
 
 <!-- ─── LOGIN ─────────────────────────────────────────────────────────── -->
 <div id="login-screen">
@@ -942,44 +944,41 @@ input, select, textarea { max-width:100%; }
     <!-- ── AGENDA ── -->
     <div class="page" id="page-agenda">
       <div class="page-header">
-        <div>
-          <div class="page-title">Agenda</div>
-          <div class="page-subtitle" id="agenda-subtitle">Agenda diaria privada. Cada usuario ve la suya; tú, como Super Admin, puedes revisar todas.</div>
+        <div><div class="page-title">Agenda</div><div class="page-subtitle" id="agenda-subtitle">Una agenda diaria privada por usuario. Solo la ve cada empleado y tú como Super Admin.</div></div>
+        <div class="agenda-header-actions">
+          <button class="btn btn-outline btn-sm" onclick="agendaJumpToday()">Hoy</button>
+          <button class="btn btn-green btn-sm" onclick="saveAgenda()">💾 Guardar</button>
         </div>
-        <button class="btn btn-green" onclick="saveAgenda()">💾 Guardar agenda</button>
       </div>
-      <div id="agenda-sa-tabs" class="chip-row agenda-user-tabs"></div>
-      <div class="agenda-shell">
-        <div class="agenda-day-card">
-          <div class="agenda-day-head">
-            <div class="agenda-day-meta">
-              <div class="agenda-weekday" id="agenda-weekday">—</div>
-              <div class="agenda-date" id="agenda-date-label">—</div>
+      <div id="agenda-sa-tabs" class="chip-row" style="margin-bottom:14px"></div>
+      <div class="agenda-paper">
+        <div class="agenda-paper-top">
+          <div class="agenda-date-line">
+            <div>
+              <div class="agenda-date-title" id="agenda-date-title">Agenda diaria</div>
+              <div class="agenda-date-sub" id="agenda-date-sub">Tu página privada del día</div>
             </div>
-            <div class="agenda-nav">
-              <button class="btn btn-outline btn-sm" onclick="agendaShiftDay(-1)">← Día anterior</button>
-              <button class="btn btn-outline btn-sm" onclick="agendaGoToday()">Hoy</button>
-              <button class="btn btn-outline btn-sm" onclick="agendaShiftDay(1)">Día siguiente →</button>
-            </div>
-          </div>
-          <div class="agenda-toolbar">
-            <button class="notepad-btn" onclick="agendaCmd('bold')" title="Negrita"><b>B</b></button>
-            <button class="notepad-btn" onclick="agendaCmd('italic')" title="Cursiva"><i>I</i></button>
-            <button class="notepad-btn" onclick="agendaCmd('underline')" title="Subrayado"><u>U</u></button>
-            <button class="notepad-btn" onclick="agendaCmd('formatBlock','h2')" title="Título">Tt</button>
-            <button class="notepad-btn" onclick="agendaCmd('insertUnorderedList')" title="Lista">•</button>
-            <button class="notepad-btn" onclick="agendaCmd('insertOrderedList')" title="Lista numerada">1.</button>
-            <button class="notepad-btn" onclick="agendaCmd('justifyLeft')" title="Alinear izquierda">⬅</button>
-            <button class="notepad-btn" onclick="agendaCmd('removeFormat')" title="Quitar formato">✕</button>
-          </div>
-          <div class="agenda-editor-wrap">
-            <div id="agenda-editor" class="agenda-page" contenteditable="true" spellcheck="true"></div>
-            <div class="agenda-status">
-              <div id="agenda-meta">Sin guardar aún</div>
-              <div id="agenda-owner"></div>
+            <div class="agenda-header-actions">
+              <button class="btn btn-outline btn-sm" onclick="agendaMoveDay(-1)">← Día anterior</button>
+              <button class="btn btn-outline btn-sm" onclick="agendaMoveDay(1)">Día siguiente →</button>
             </div>
           </div>
         </div>
+        <div class="agenda-toolbar">
+          <button class="notepad-btn" onclick="agendaCmd('bold')" title="Negrita"><b>B</b></button>
+          <button class="notepad-btn" onclick="agendaCmd('underline')" title="Subrayado"><u>U</u></button>
+          <button class="notepad-btn" onclick="agendaCmd('italic')" title="Cursiva"><i>I</i></button>
+          <button class="notepad-btn" onclick="agendaHeading()" title="Título">Tt</button>
+          <button class="notepad-btn" onclick="agendaCmd('insertUnorderedList')" title="Lista">•</button>
+          <button class="notepad-btn" onclick="agendaColor('#2e4a1e')" title="Título verde" style="color:#2e4a1e">A</button>
+          <button class="notepad-btn" onclick="agendaColor('#8b5a2b')" title="Marrón" style="color:#8b5a2b">A</button>
+          <button class="notepad-btn" onclick="agendaHighlight('#fef3c7')" title="Resaltar" style="background:#fef3c7">✦</button>
+          <button class="notepad-btn" onclick="agendaCmd('removeFormat')" title="Quitar formato">✕</button>
+        </div>
+        <div class="agenda-editor-wrap">
+          <div id="agenda-editor-html" contenteditable="true" spellcheck="true" data-placeholder="Escribe aquí tu agenda del día: pendientes, llamadas, tareas, recordatorios o notas del turno."></div>
+        </div>
+        <div class="agenda-footer-meta" id="agenda-meta">Sin guardar aún</div>
       </div>
     </div>
 
@@ -1631,9 +1630,9 @@ async function doLogin(userObj){
   const rememberMe = document.getElementById('remember-me')?.checked !== false;
   try { if(rememberMe) localStorage.setItem('noctis_session', JSON.stringify({email:u.email, pwd:u.pwd})); } catch(e) {}
   document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
   document.body.classList.add('app-loading');
   document.body.classList.remove('app-ready');
-  document.getElementById('app').style.display = 'flex';
   await initApp();
   document.body.classList.remove('app-loading');
   document.body.classList.add('app-ready');
@@ -1984,7 +1983,7 @@ function renderDashboard(){
     const oi=INCIDENTS.filter(i=>i.dept===d&&i.status==='ABIERTA').length;
     const statusLabel=pct===100?'<span class="badge badge-green">✓ Al día</span>':pct>0?'<span class="badge badge-amber">En Curso</span>':'<span class="badge badge-gray">Pendiente</span>';
     return `<tr>
-      <td><span class="dept-cell-name">${D_ICONS[d]||''} ${d}</span></td>
+      <td>${D_ICONS[d]||''} ${d}</td>
       <td style="cursor:pointer" onclick="incDeptFilter='all';navTo('checklists',document.getElementById('nav-checklists'))"><div style="display:flex;align-items:center;gap:7px"><div class="progress-bg" style="width:70px;height:6px"><div class="progress-fill" style="width:${pct}%"></div></div><span style="font-size:11px;color:var(--ink-muted)">${pct}%</span></div></td>
       <td style="cursor:pointer" onclick="incDeptFilter='${d}';navTo('incidents',document.getElementById('nav-incidents'))">${oi>0?`<span class="badge badge-red" style="cursor:pointer">${oi}</span>`:`<span class="badge badge-green">0</span>`}</td>
       <td>${statusLabel}</td>
@@ -3009,115 +3008,67 @@ async function saveAlarm(){
 
 // ── AGENDA PRIVADA ───────────────────────────────────────────
 let agendaUserId = null;
-
-function agendaKeyFor(userId){ return 'agenda:'+String(userId); }
-
-
-let agendaUserId = null;
 let agendaDate = new Date().toISOString().slice(0,10);
-
-function agendaKeyFor(userId, dateStr){
-  return `AGENDA_${userId}_${dateStr}`;
+function agendaKeyFor(userId, dateStr){ return 'agenda:'+String(userId)+':'+String(dateStr||agendaDate); }
+function agendaDateObj(){ return new Date(agendaDate+'T12:00:00'); }
+function agendaDateTitle(dateStr){
+  const d = new Date((dateStr||agendaDate)+'T12:00:00');
+  return d.toLocaleDateString('es-ES',{weekday:'long', day:'numeric', month:'long', year:'numeric'});
 }
-
-function agendaFriendlyDate(dateStr){
-  const d = new Date(dateStr+'T12:00:00');
-  return {
-    weekday: d.toLocaleDateString('es-ES',{weekday:'long'}).replace(/^./,m=>m.toUpperCase()),
-    date: d.toLocaleDateString('es-ES',{day:'numeric',month:'long',year:'numeric'})
-  };
+function agendaDateSub(dateStr){
+  const d = new Date((dateStr||agendaDate)+'T12:00:00');
+  const week = Math.ceil((((d - new Date(d.getFullYear(),0,1)) / 86400000) + new Date(d.getFullYear(),0,1).getDay()+1)/7);
+  return 'Página diaria · Semana '+week;
 }
-
-function agendaSetSelectionSafe(){
-  const editor = document.getElementById('agenda-editor');
-  if(editor) editor.focus();
-}
-
-function agendaCmd(cmd, value=null){
-  agendaSetSelectionSafe();
-  try{
-    if(cmd==='formatBlock' && value){
-      document.execCommand('formatBlock', false, value);
-    } else {
-      document.execCommand(cmd, false, value);
-    }
-  }catch(e){}
-  const editor = document.getElementById('agenda-editor');
-  if(editor){
-    editor.querySelectorAll('h1,h2,h3').forEach(h=>{ if(!h.textContent.trim()) h.remove(); });
-  }
-}
-
-function agendaShiftDay(delta){
-  const d = new Date(agendaDate+'T12:00:00');
-  d.setDate(d.getDate()+delta);
-  agendaDate = d.toISOString().slice(0,10);
-  renderAgenda();
-}
-
-function agendaGoToday(){
-  agendaDate = new Date().toISOString().slice(0,10);
-  renderAgenda();
-}
-
-function selectAgendaUser(userId){
-  agendaUserId = userId;
-  renderAgenda();
-}
-
+function agendaEditorEl(){ return document.getElementById('agenda-editor-html'); }
 function renderAgenda(){
+  const isS = cu.role==='SUPER_ADMIN';
   const tabs = document.getElementById('agenda-sa-tabs');
-  const subtitle = document.getElementById('agenda-subtitle');
-  const editor = document.getElementById('agenda-editor');
   const meta = document.getElementById('agenda-meta');
-  const owner = document.getElementById('agenda-owner');
-  const weekday = document.getElementById('agenda-weekday');
-  const dateLabel = document.getElementById('agenda-date-label');
-  if(!editor) return;
-
-  const dateParts = agendaFriendlyDate(agendaDate);
-  if(weekday) weekday.textContent = dateParts.weekday;
-  if(dateLabel) dateLabel.textContent = dateParts.date;
-
-  if(cu.role==='SUPER_ADMIN'){
-    const users = USERS.filter(u=>u.active).sort((a,b)=>a.name.localeCompare(b.name,'es'));
-    if(!agendaUserId) agendaUserId = users[0] ? users[0].id : cu.id;
-    if(tabs) tabs.innerHTML = users.map(u=>`<div class="chip${String(agendaUserId)===String(u.id)?' active':''}" onclick="selectAgendaUser(${u.id})">${u.name}</div>`).join('');
-    if(subtitle) subtitle.textContent = 'Agenda diaria privada. Cada usuario solo ve la suya; tú, como Super Admin, puedes revisar todas.';
+  const subtitle = document.getElementById('agenda-subtitle');
+  const titleEl = document.getElementById('agenda-date-title');
+  const subEl = document.getElementById('agenda-date-sub');
+  const editor = agendaEditorEl();
+  if(!tabs||!editor||!meta) return;
+  if(isS){
+    const users = USERS.filter(u=>u.active!==false && u.role!=='SUPER_ADMIN');
+    if(!agendaUserId || !users.some(u=>String(u.id)===String(agendaUserId))) agendaUserId = users[0] ? users[0].id : cu.id;
+    tabs.innerHTML = users.map(u=>`<div class="chip${String(agendaUserId)===String(u.id)?' active':''}" onclick="selectAgendaUser(${u.id})">${u.name}</div>`).join('');
+    subtitle.textContent = 'Agenda diaria privada. Cada empleado solo ve la suya y tú puedes revisarlas todas.';
   } else {
     agendaUserId = cu.id;
-    if(tabs) tabs.innerHTML = '';
-    if(subtitle) subtitle.textContent = 'Tu agenda diaria privada. Solo la ves tú y el Super Admin.';
+    tabs.innerHTML = '';
+    subtitle.textContent = 'Tu agenda diaria privada. Solo la ves tú y el Super Admin.';
   }
-
-  const targetUser = USERS.find(u=>String(u.id)===String(agendaUserId)) || cu;
   const key = agendaKeyFor(agendaUserId, agendaDate);
   const note = NOTES[key];
-  editor.innerHTML = (note && note.content) ? note.content : '<p></p>';
-  editor.dataset.key = key;
-  editor.dataset.userId = agendaUserId;
-  editor.dataset.date = agendaDate;
-  editor.oninput = function(){
-    if(meta) meta.textContent = 'Cambios sin guardar';
-  };
-  if(owner) owner.textContent = `${targetUser.name}`;
-  if(meta) meta.textContent = note?.updatedAt ? `Último guardado: ${new Date(note.updatedAt).toLocaleString('es-ES')}` : 'Sin guardar aún';
+  editor.innerHTML = note && note.content ? note.content : '';
+  titleEl.textContent = agendaDateTitle(agendaDate).replace(/^./,m=>m.toUpperCase());
+  subEl.textContent = agendaDateSub(agendaDate);
+  const currentUser = USERS.find(u=>String(u.id)===String(agendaUserId)) || cu;
+  meta.textContent = note?.updatedAt ? `${currentUser.name} · Guardado: ${new Date(note.updatedAt).toLocaleString('es-ES')}` : `${currentUser.name} · ${agendaDate} · Sin guardar aún`;
 }
-
+function selectAgendaUser(userId){ agendaUserId = userId; renderAgenda(); }
+function agendaMoveDay(delta){ const d=agendaDateObj(); d.setDate(d.getDate()+delta); agendaDate=d.toISOString().slice(0,10); renderAgenda(); }
+function agendaJumpToday(){ agendaDate = new Date().toISOString().slice(0,10); renderAgenda(); }
+function agendaFocus(){ const el=agendaEditorEl(); if(el) el.focus(); }
+function agendaCmd(cmd, value=null){ agendaFocus(); try{ document.execCommand(cmd,false,value); }catch(e){} }
+function agendaColor(color){ agendaCmd('styleWithCSS', true); agendaCmd('foreColor', color); }
+function agendaHighlight(color){ agendaCmd('styleWithCSS', true); agendaCmd('hiliteColor', color); }
+function agendaHeading(){ agendaFocus(); try{ document.execCommand('formatBlock', false, 'h2'); }catch(e){} agendaColor('#2e4a1e'); }
 async function saveAgenda(){
-  const editor = document.getElementById('agenda-editor');
+  const editor = agendaEditorEl();
   if(!editor) return;
   const targetUserId = (cu.role==='SUPER_ADMIN' && agendaUserId) ? agendaUserId : cu.id;
   const key = agendaKeyFor(targetUserId, agendaDate);
-  const html = (editor.innerHTML||'').trim();
-  const clean = html==='<p></p>' ? '' : html;
-  await persistNote(key, clean, cu.name);
-  NOTES[key] = Object.assign({}, NOTES[key]||{}, {content:clean, updatedAt:new Date().toISOString(), author:cu.name});
+  const html = editor.innerHTML || '';
+  await persistNote(key, html, cu.name);
+  NOTES[key] = Object.assign({}, NOTES[key]||{}, {content:html, raw:html, updatedAt:new Date().toISOString(), author:cu.name});
   const meta = document.getElementById('agenda-meta');
-  if(meta) meta.textContent = `Último guardado: ${new Date().toLocaleString('es-ES')}`;
+  const targetUser = USERS.find(u=>String(u.id)===String(targetUserId)) || cu;
+  if(meta) meta.textContent = `${targetUser.name} · Guardado: ${new Date().toLocaleString('es-ES')}`;
   toast('✓ Agenda guardada');
 }
-
 async function doneAlarm(id){
   const a = ALARMS.find(x => x.id===id);
   if (!a) return;
@@ -3928,11 +3879,6 @@ async function saveConfig(){
         await SB.post('nh_config', body);
       }
     }
-    try {
-      const cache={colors:{},font:fontVal,fontSize:fontSizeVal};
-      keys.forEach(k=>cache.colors[k]=document.getElementById('cfg-'+k)?.value||'');
-      localStorage.setItem('noctis_config_cache_global', JSON.stringify(cache));
-    } catch(e){}
     toast('✓ Configuración guardada — se aplica en todos los dispositivos');
   } catch(e){
     console.warn('saveConfig error:', e);
@@ -4413,24 +4359,7 @@ async function downloadReport(type,format){
     tr:last-child td{border-bottom:none}
     .report-footer{margin-top:32px;padding-top:16px;border-top:1px solid #d6c9b0;font-size:10px;color:#9a8e7e;display:flex;justify-content:space-between}
     @media print{body{padding:20px 24px}@page{margin:1.5cm}}
-  </style>
-<script>
-(function(){
-  try {
-    var cfg = JSON.parse(localStorage.getItem('noctis_config_cache_global') || '{}');
-    var root = document.documentElement;
-    var map = {
-      forest:'--forest', topbar:'--topbar-bg', gold:'--gold', red:'--red', cream:'--cream',
-      'forest-light':'--forest-light', amber:'--amber', blue:'--blue', forest2:'--forest-ok', border:'--border'
-    };
-    if(cfg.colors){ Object.keys(cfg.colors).forEach(function(k){ if(map[k]) root.style.setProperty(map[k], cfg.colors[k]); }); }
-    if(cfg.font) root.style.setProperty('--font-body', cfg.font);
-    if(cfg.fontSize) root.style.fontSize = cfg.fontSize + 'px';
-  } catch(e){}
-})();
-</script>
-
-</head><body>
+  </style></head><body>
   <div class="report-header">
     <div class="report-logo">Noctis Hub · Sistema de Gestión Hotelera</div>
     <h1>${reportTitle}</h1>
