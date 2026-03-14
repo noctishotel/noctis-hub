@@ -1227,7 +1227,7 @@ WHERE id NOT IN (
     </div>
     <div class="modal-foot">
       <button class="btn btn-outline" onclick="closeModal('modal-incident')">Cancelar</button>
-      <button class="btn btn-green" onclick="saveIncident()">Guardar</button>
+      <button class="btn btn-green" id="btn-save-incident" type="button">Guardar</button>
     </div>
   </div>
 </div>
@@ -2673,13 +2673,13 @@ function openNewIncident(){
   document.getElementById('inc-f-alarm').value='';
   document.getElementById('inc-update-section').style.display='none';
   document.getElementById('modal-inc-title').textContent='Nueva Incidencia';
-  // Lock dept and status for employees
   const deptSel = document.getElementById('inc-f-dept');
   const statusSel = document.getElementById('inc-f-status');
-  if(cu.role==='EMPLOYEE'){
-    deptSel.value = cu.dept;
+  const restrictDept = cu.role==='EMPLOYEE' || cu.role==='ADMIN';
+  if(restrictDept){
+    deptSel.value = cu.dept || deptSel.value || '';
     deptSel.disabled = true;
-    statusSel.disabled = true;
+    statusSel.disabled = cu.role==='EMPLOYEE';
   } else {
     deptSel.disabled = false;
     statusSel.disabled = false;
@@ -2691,11 +2691,15 @@ function openNewIncident(){
 function populateAssignedSelect(selectedIds){
   const sel = document.getElementById('inc-f-assigned');
   if(!sel) return;
+  const ids = Array.isArray(selectedIds) ? selectedIds.map(x=>parseInt(x)).filter(Number.isFinite) : [];
   const isS = cu.role==='SUPER_ADMIN';
-  // SUPER_ADMIN sees everyone; others only see their own department
-  const eligible = USERS.filter(u => u.active && (isS || u.dept === cu.dept));
-  sel.innerHTML = eligible.map(u=>
-    `<option value="${u.id}" ${selectedIds.includes(u.id)?'selected':''}>${u.name} — ${roleLabel(u.role)}</option>`
+  const eligible = (USERS||[]).filter(u =>
+    u && u.active &&
+    (!activeHotelId || u.hotel_id===activeHotelId) &&
+    (isS || u.dept === cu.dept)
+  );
+  sel.innerHTML = '<option value="">Sin asignar</option>' + eligible.map(u=>
+    `<option value="${u.id}" ${ids.includes(parseInt(u.id))?'selected':''}>${u.name} — ${roleLabel(u.role)}</option>`
   ).join('');
 }
 
@@ -2718,12 +2722,11 @@ function editIncident(id){
   document.getElementById('inc-f-alarm').value='';
   const assignedIds=inc.assigned_to?JSON.parse(inc.assigned_to||'[]'):[];
   populateAssignedSelect(assignedIds);
-  // Lock dept and status for employees
   const deptSel2 = document.getElementById('inc-f-dept');
   const statusSel2 = document.getElementById('inc-f-status');
-  if(cu.role==='EMPLOYEE'){
+  if(cu.role==='EMPLOYEE' || cu.role==='ADMIN'){
     deptSel2.disabled = true;
-    statusSel2.disabled = false; // employee CAN update status on their own incidents
+    statusSel2.disabled = false;
   } else {
     deptSel2.disabled = false;
     statusSel2.disabled = false;
@@ -2732,48 +2735,81 @@ function editIncident(id){
 }
 
 async function saveIncident(){
-  const id=parseInt(document.getElementById('inc-f-id').value)||0;
-  const title=document.getElementById('inc-f-title').value.trim();
-  const dept=document.getElementById('inc-f-dept').value;
-  const prio=document.getElementById('inc-f-prio').value;
-  const status=document.getElementById('inc-f-status').value;
-  const desc=document.getElementById('inc-f-desc').value.trim();
-  const note=document.getElementById('inc-f-note').value.trim();
-  const assignedSel=document.getElementById('inc-f-assigned');
-  const assigned_to=assignedSel?Array.from(assignedSel.selectedOptions).map(o=>parseInt(o.value)):[];
-  const alarmTime=document.getElementById('inc-f-alarm')?.value||'';
-  if(!title){toast('✗ Escribe un título');return;}
-  if(cu.role==='EMPLOYEE' && dept !== cu.dept){toast('✗ Solo puedes crear incidencias de tu departamento');return;}
-  if(cu.role==='ADMIN' && dept !== cu.dept){toast('✗ Solo puedes gestionar incidencias de tu departamento');return;}
-  if(id){
-    const inc=INCIDENTS.find(i=>i.id===id);if(!inc)return;
-    const prevStatus=inc.status;
-    Object.assign(inc,{title,dept,prio,status,desc});
-    if(note) inc.history.push({date:nowStr(),text:note+' — '+cu.name});
-    if(status!==prevStatus) inc.history.push({date:nowStr(),text:'Estado: '+prevStatus+' → '+status+' por '+cu.name});
-    try{ await SB.patch('nh_incidents','?id=eq.'+id,{title,dept,prio,status,description:desc,history:inc.history,assigned_to:JSON.stringify(assigned_to),updated_at:new Date().toISOString()}); }
-    catch(e){ toast('✗ Error Supabase'); return; }
-    toast('✓ Incidencia actualizada');
-  } else {
-    const newInc={title,dept,prio,status:'ABIERTA',desc,history:[{date:nowStr(),text:'Creada por '+cu.name}],at:nowStr(),by:cu.id,id:IDS.inc++};
-    try{
-      const [saved]=await SB.post('nh_incidents',{hotel_id:activeHotelId,title,dept,prio,status:'ABIERTA',description:desc,assigned_to:JSON.stringify(assigned_to),created_by:cu.id,created_at:nowStr(),history:newInc.history});
-      if(saved) newInc.id=saved.id;
-    } catch(e){ toast('✗ Error Supabase'); return; }
-    INCIDENTS.unshift(newInc);
-    toast('✓ Incidencia creada');
+  const saveBtn = document.getElementById('btn-save-incident');
+  if(saveBtn) saveBtn.disabled = true;
+  try {
+    const id=parseInt(document.getElementById('inc-f-id').value)||0;
+    const title=(document.getElementById('inc-f-title').value||'').trim();
+    const deptEl=document.getElementById('inc-f-dept');
+    const prio=document.getElementById('inc-f-prio').value;
+    const status=document.getElementById('inc-f-status').value;
+    const desc=(document.getElementById('inc-f-desc').value||'').trim();
+    const note=(document.getElementById('inc-f-note').value||'').trim();
+    const assignedSel=document.getElementById('inc-f-assigned');
+    const assigned_to=assignedSel
+      ? Array.from(assignedSel.selectedOptions)
+          .map(o=>parseInt(o.value))
+          .filter(Number.isFinite)
+      : [];
+    const alarmTime=document.getElementById('inc-f-alarm')?.value||'';
+    const dept = (cu.role==='SUPER_ADMIN')
+      ? ((deptEl?.value||'').trim() || cu.dept || '')
+      : ((cu.dept||'').trim() || (deptEl?.value||'').trim() || '');
+
+    if(!title){toast('✗ Escribe un título');return;}
+    if(!dept){toast('✗ No se ha podido detectar el departamento');return;}
+    if(!activeHotelId){toast('✗ No hay hotel activo. Recarga la app');return;}
+    if(cu.role==='EMPLOYEE' && dept !== cu.dept){toast('✗ Solo puedes crear incidencias de tu departamento');return;}
+    if(cu.role==='ADMIN' && dept !== cu.dept){toast('✗ Solo puedes gestionar incidencias de tu departamento');return;}
+
+    if(id){
+      const inc=INCIDENTS.find(i=>i.id===id);if(!inc){toast('✗ No se encontró la incidencia');return;}
+      const prevStatus=inc.status;
+      Object.assign(inc,{title,dept,prio,status,desc,assigned_to:JSON.stringify(assigned_to)});
+      if(note) inc.history.push({date:nowStr(),text:note+' — '+cu.name});
+      if(status!==prevStatus) inc.history.push({date:nowStr(),text:'Estado: '+prevStatus+' → '+status+' por '+cu.name});
+      await SB.patch('nh_incidents','?id=eq.'+id,{title,dept,prio,status,description:desc,history:inc.history,assigned_to:JSON.stringify(assigned_to),updated_at:new Date().toISOString()});
+      toast('✓ Incidencia actualizada');
+    } else {
+      const newInc={title,dept,prio,status:'ABIERTA',desc,history:[{date:nowStr(),text:'Creada por '+cu.name}],at:nowStr(),by:cu.id,id:IDS.inc++,assigned_to:JSON.stringify(assigned_to)};
+      const created = await SB.post('nh_incidents',{hotel_id:activeHotelId,title,dept,prio,status:'ABIERTA',description:desc,assigned_to:JSON.stringify(assigned_to),created_by:cu.id,created_at:nowStr(),history:newInc.history});
+      const saved = Array.isArray(created) ? created[0] : created;
+      if(saved && saved.id) newInc.id=saved.id;
+      INCIDENTS.unshift(newInc);
+      toast('✓ Incidencia creada');
+    }
+
+    if(alarmTime){
+      const alarmObj={hotel_id:activeHotelId,title:'[Inc] '+title,note:dept+' — '+(desc||'').slice(0,80),alarm_time:alarmTime,dept:dept,done:false,created_by:cu.id};
+      try{
+        const createdAlarm = await SB.post('nh_alarms',alarmObj);
+        const sa = Array.isArray(createdAlarm) ? createdAlarm[0] : createdAlarm;
+        ALARMS.unshift({...alarmObj,id:sa&&sa.id?sa.id:Date.now()});
+      }catch(e){}
+    }
+    closeModal('modal-incident');
+    buildNotifications();
+    updateBadges();
+    renderIncidents();
+    renderDashboard();
+  } catch(e){
+    console.error('Error guardando incidencia', e);
+    toast('✗ Error al guardar la incidencia');
+    try{ alert('Error al guardar la incidencia: ' + (e?.message || JSON.stringify(e))); }catch(_){ }
+  } finally {
+    const saveBtn2 = document.getElementById('btn-save-incident');
+    if(saveBtn2) saveBtn2.disabled = false;
   }
-  // Create alarm linked to incident if alarmTime is set
-  if(alarmTime){
-    const alarmObj={hotel_id:activeHotelId,title:'[Inc] '+title,note:dept+' — '+(desc||'').slice(0,80),alarm_time:alarmTime,dept:dept,done:false,created_by:cu.id};
-    try{const[sa]=await SB.post('nh_alarms',alarmObj);ALARMS.unshift({...alarmObj,id:sa?sa.id:Date.now()});}catch(e){}
-  }
-  closeModal('modal-incident');
-  buildNotifications();
-  updateBadges();
-  renderIncidents();
-  renderDashboard();
 }
+
+
+document.addEventListener('DOMContentLoaded', () => {
+  const saveIncidentBtn = document.getElementById('btn-save-incident');
+  if (saveIncidentBtn && !saveIncidentBtn.dataset.bound) {
+    saveIncidentBtn.dataset.bound = '1';
+    saveIncidentBtn.addEventListener('click', () => saveIncident());
+  }
+});
 
 async function quickStatus(id, status) {
   const inc = INCIDENTS.find(x => x.id===id);
