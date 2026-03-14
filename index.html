@@ -48,16 +48,17 @@
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 html { font-size: 17px; overscroll-behavior: none; }
 body { font-family:var(--font-body,'DM Sans',sans-serif); background:var(--cream); color:var(--ink); min-height:100vh; overflow-x:hidden; }
-body.app-loading #app { opacity:1; pointer-events:none; }
+body.app-loading #app { opacity:1; pointer-events:auto; }
 body.app-ready #app { opacity:1; transition:opacity .12s ease; }
 #app-loading-overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(246,242,233,.72);backdrop-filter:blur(2px);z-index:9999;opacity:0;}
-body.app-loading #app-loading-overlay{display:flex;animation:nhOverlayIn .18s ease .55s forwards;}
+body.app-loading #app-loading-overlay{display:none !important;animation:none !important;}
 @keyframes nhOverlayIn{to{opacity:1;}}
 .loading-shell{display:flex;flex-direction:column;align-items:center;gap:14px;color:var(--forest);text-align:center;padding:24px;}
 .loading-mark{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:700;line-height:1.05;}
 .loading-sub{font-size:.9rem;color:var(--ink-muted);} 
 .loading-spinner{width:34px;height:34px;border-radius:50%;border:3px solid rgba(46,74,30,.15);border-top-color:var(--forest);animation:spin .8s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg)}}
+.dept-table-cell-name,.dept-name-text,.dept-label{word-break:keep-all!important;overflow-wrap:normal!important;hyphens:none!important;}
 
 button { font-family:'DM Sans',sans-serif; cursor:pointer; }
 input, select, textarea { font-family:'DM Sans',sans-serif; }
@@ -485,6 +486,33 @@ td { padding:13px 16px; font-size: 0.941rem; color:var(--ink); vertical-align:mi
 #agenda-editor-html ul, #agenda-editor-html ol{margin:0 0 12px 24px;}
 #agenda-editor-html li{margin:0 0 6px;}
 .agenda-footer-meta{padding:14px 22px;border-top:1px solid var(--border);font-size:.82rem;color:var(--ink-muted);background:#fff;}
+
+@media (max-width:768px){
+  .kpi-grid{
+    display:grid !important;
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    gap:12px !important;
+  }
+  .kpi-card{
+    min-width:0 !important;
+    width:auto !important;
+    padding:16px 14px !important;
+  }
+  .kpi-label{
+    font-size:.72rem !important;
+    line-height:1.25 !important;
+    white-space:normal !important;
+    word-break:normal !important;
+    overflow-wrap:break-word !important;
+  }
+  #page-dashboard .grid-2{
+    grid-template-columns:1fr !important;
+  }
+  #dept-table td:first-child, #dept-table th:first-child{
+    min-width:150px !important;
+  }
+}
+
 @media (max-width:768px){
   #page-dashboard .grid-2 { grid-template-columns:1fr !important; }
   #page-dashboard .grid-4 { grid-template-columns:1fr 1fr !important; }
@@ -660,7 +688,7 @@ input, select, textarea { max-width:100%; }
       <input type="checkbox" id="remember-me" checked style="width:16px;height:16px;accent-color:var(--forest);cursor:pointer">
       <label for="remember-me" style="font-size:0.824rem;color:var(--ink-light);cursor:pointer">Mantener sesión iniciada</label>
     </div>
-    <button class="btn-login" onclick="doLogin()">Acceder</button>
+    <button type="button" class="btn-login" onclick="doLogin()">Acceder</button>
     <div class="login-error" id="login-err">Email o contraseña incorrectos</div>
 
   </div>
@@ -949,8 +977,8 @@ input, select, textarea { max-width:100%; }
       <div class="page-header">
         <div><div class="page-title">Agenda</div><div class="page-subtitle" id="agenda-subtitle">Agenda diaria privada por usuario. Cada empleado solo ve la suya y tú como Super Admin puedes revisar todas, incluida la tuya.</div></div>
         <div class="agenda-header-actions">
-          <button class="btn btn-outline btn-sm" onclick="agendaJumpToday()">Hoy</button>
-          <button class="btn btn-green btn-sm" onclick="saveAgenda()">💾 Guardar</button>
+          <button type="button" class="btn btn-outline btn-sm" onclick="agendaJumpToday()">Hoy</button>
+          <button type="button" class="btn btn-green btn-sm" onclick="saveAgenda()">💾 Guardar</button>
         </div>
       </div>
       <div id="agenda-sa-tabs" class="chip-row" style="margin-bottom:14px"></div>
@@ -1173,95 +1201,7 @@ WHERE id NOT IN (
       <div id="archive-content"></div>
     </div>
 
-    <!-- ── NOTES ── -->
-    <div class="page" id="page-notes">
-      <div class="page-header">
-        <div><div class="page-title">Bloc de Notas</div><div class="page-subtitle" id="notes-subtitle">Notas privadas de tu departamento</div></div>
-        <div style="display:flex;gap:8px">
-          <button class="btn btn-outline btn-sm" id="notes-save-btn" onclick="saveNote()">💾 Guardar</button>
-          <button class="btn btn-outline btn-sm" id="notes-expand-btn" onclick="openNoteFullscreen()" title="Pantalla completa" style="display:none">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
-            <span class="hide-mobile"> Expandir</span>
-          </button>
-        </div>
-      </div>
-      <div id="notes-dept-tabs" class="notepad-dept-tabs"></div>
-      <div style="background:white;border:1px solid var(--border);border-radius:12px;overflow:hidden;min-height:calc(100vh - 280px);display:flex;flex-direction:column;box-shadow:0 4px 24px rgba(0,0,0,0.08)">
-        <!-- Toolbar — compact dropdown -->
-        <div id="notepad-toolbar-wrap" style="padding:8px 14px;border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;gap:5px;align-items:center;background:#fafaf7;position:sticky;top:0;z-index:10">
-          <!-- Format buttons -->
-          <button class="notepad-btn" onclick="noteCmd('bold')" title="Negrita" style="font-weight:800;min-width:30px;height:30px;padding:0 8px"><b>B</b></button>
-          <button class="notepad-btn" onclick="noteCmd('italic')" title="Cursiva" style="min-width:30px;height:30px;padding:0 8px"><i>I</i></button>
-          <button class="notepad-btn" onclick="noteCmd('underline')" title="Subrayado" style="min-width:30px;height:30px;padding:0 8px"><u>U</u></button>
-          <button class="notepad-btn" onclick="noteCmd('strikeThrough')" title="Tachado" style="min-width:30px;height:30px;padding:0 8px;text-decoration:line-through">S</button>
-          <div style="width:1px;height:22px;background:var(--border);margin:0 2px"></div>
-          <!-- More options dropdown -->
-          <div style="position:relative">
-            <button class="notepad-btn" onclick="toggleNoteToolbar()" title="Más opciones" style="height:30px;padding:0 10px;font-size:12px;display:flex;align-items:center;gap:4px">
-              ✦ Formato <span style="font-size:9px">▼</span>
-            </button>
-            <div id="note-extra-toolbar" style="display:none;position:absolute;top:36px;left:0;background:white;border:1px solid var(--border);border-radius:10px;padding:10px 12px;box-shadow:0 8px 24px rgba(0,0,0,0.13);z-index:100;min-width:300px;display:none;flex-wrap:wrap;gap:6px;align-items:center">
-              <select onchange="noteCmd('fontSize');this.value=''" style="padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;height:30px;cursor:pointer">
-                <option value="">Tamaño</option>
-                <option value="1">Pequeño</option>
-                <option value="3">Normal</option>
-                <option value="5">Grande</option>
-                <option value="7">Muy Grande</option>
-              </select>
-              <select onchange="noteFontFamily(this.value);this.value=''" style="padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;height:30px;cursor:pointer">
-                <option value="">Fuente</option>
-                <option value="Inter,sans-serif">Inter</option>
-                <option value="Georgia,serif">Georgia</option>
-                <option value="'Courier New',monospace">Courier</option>
-                <option value="Arial,sans-serif">Arial</option>
-              </select>
-              <div style="width:100%;height:1px;background:var(--border);margin:2px 0"></div>
-              <button class="notepad-btn" onclick="noteCmd('justifyLeft')" title="Izquierda" style="width:30px;height:30px">⬅</button>
-              <button class="notepad-btn" onclick="noteCmd('justifyCenter')" title="Centrar" style="width:30px;height:30px">≡</button>
-              <button class="notepad-btn" onclick="noteCmd('justifyRight')" title="Derecha" style="width:30px;height:30px">➡</button>
-              <div style="width:1px;height:22px;background:var(--border);margin:0 2px"></div>
-              <button class="notepad-btn" onclick="noteCmd('insertUnorderedList')" title="Lista puntos" style="width:30px;height:30px">•</button>
-              <button class="notepad-btn" onclick="noteCmd('insertOrderedList')" title="Lista numerada" style="width:30px;height:30px">1.</button>
-              <button class="notepad-btn" onclick="noteCmd('indent')" title="Sangría" style="width:30px;height:30px">→</button>
-              <button class="notepad-btn" onclick="noteCmd('outdent')" title="Quitar sangría" style="width:30px;height:30px">←</button>
-              <div style="width:100%;height:1px;background:var(--border);margin:2px 0"></div>
-              <span style="font-size:11px;color:var(--ink-muted)">Resaltar:</span>
-              <button class="notepad-btn" style="background:#fef9c3;border:2px solid #d4b800;width:22px;height:22px" onclick="noteHighlight('#fef9c3')" title="Amarillo"></button>
-              <button class="notepad-btn" style="background:#dcfce7;border:2px solid #86efac;width:22px;height:22px" onclick="noteHighlight('#dcfce7')" title="Verde"></button>
-              <button class="notepad-btn" style="background:#fee2e2;border:2px solid #fca5a5;width:22px;height:22px" onclick="noteHighlight('#fee2e2')" title="Rojo"></button>
-              <button class="notepad-btn" style="background:#e0e7ff;border:2px solid #a5b4fc;width:22px;height:22px" onclick="noteHighlight('#e0e7ff')" title="Azul"></button>
-              <button class="notepad-btn" style="background:#f3e8ff;border:2px solid #d8b4fe;width:22px;height:22px" onclick="noteHighlight('#f3e8ff')" title="Morado"></button>
-              <button class="notepad-btn" style="background:#fde8d8;border:2px solid #fdba74;width:22px;height:22px" onclick="noteHighlight('#fde8d8')" title="Naranja"></button>
-              <div style="width:1px;height:22px;background:var(--border);margin:0 2px"></div>
-              <span style="font-size:11px;color:var(--ink-muted)">Color texto:</span>
-              <input type="color" value="#1a1208" onchange="noteForeColor(this.value)" title="Color de texto" style="width:26px;height:26px;border:1px solid var(--border);border-radius:4px;cursor:pointer;padding:1px">
-              <div style="width:1px;height:22px;background:var(--border);margin:0 2px"></div>
-              <button class="notepad-btn" onclick="noteCmd('removeFormat')" title="Quitar formato" style="width:30px;height:30px;font-size:14px">✕</button>
-              <button class="notepad-btn" onclick="noteCmd('undo')" title="Deshacer" style="width:30px;height:30px">↩</button>
-              <button class="notepad-btn" onclick="noteCmd('redo')" title="Rehacer" style="width:30px;height:30px">↪</button>
-            </div>
-          </div>
-          <div style="width:1px;height:22px;background:var(--border);margin:0 2px"></div>
-          <span style="font-size:11px;color:var(--ink-muted)">Resaltar:</span>
-          <button class="notepad-btn" style="background:#fef9c3;border:2px solid #d4b800;width:22px;height:22px" onclick="noteHighlight('#fef9c3')" title="Amarillo"></button>
-          <button class="notepad-btn" style="background:#dcfce7;border:2px solid #86efac;width:22px;height:22px" onclick="noteHighlight('#dcfce7')" title="Verde"></button>
-          <button class="notepad-btn" style="background:#fee2e2;border:2px solid #fca5a5;width:22px;height:22px" onclick="noteHighlight('#fee2e2')" title="Rojo"></button>
-          <input type="color" value="#1a1208" onchange="noteForeColor(this.value)" title="Color de texto" style="width:26px;height:26px;border:1px solid var(--border);border-radius:4px;cursor:pointer;padding:1px" title="Color texto">
-          <button class="notepad-btn" onclick="noteCmd('undo')" title="Deshacer" style="width:30px;height:30px">↩</button>
-          <button class="notepad-btn" onclick="noteCmd('removeFormat')" title="Quitar formato" style="width:30px;height:30px;font-size:14px">✕</button>
-        </div>
-                <!-- Vista SA: lista de notas por empleado (solo lectura) -->
-        <div id="notes-sa-view" style="display:none;flex:1;overflow-y:auto;padding:20px 28px"></div>
-        <!-- Editor empleado -->
-        <div class="notepad-editor" id="notepad-editor" contenteditable="true" spellcheck="true" oninput="onNoteInput()" style="flex:1;min-height:500px;padding:28px 40px;font-size:16px;line-height:2;outline:none;background:white;font-family:'Georgia',serif;color:#1a1208;border:none"></div>
-        <div style="padding:8px 20px 10px;display:flex;justify-content:space-between;align-items:center;background:#fafaf7;border-top:1px solid var(--border)">
-          <span class="notepad-saved" id="notepad-saved">✓ Guardado</span>
-          <span style="font-size:11px;color:var(--ink-muted)" id="notepad-last-saved"></span>
-        </div>
-      </div>
-    </div>
-
-  </div><!-- /main -->
+    <!-- Bloc de Notas eliminado: sustituido por Agenda -->
 
   <!-- FULLSCREEN NOTE OVERLAY -->
   <div id="note-fullscreen-overlay">
@@ -1634,12 +1574,27 @@ async function doLogin(userObj){
   try { if(rememberMe) localStorage.setItem('noctis_session', JSON.stringify({email:u.email, pwd:u.pwd})); } catch(e) {}
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
-  document.body.classList.remove('app-ready');
-  const slowLoadTimer = setTimeout(()=>document.body.classList.add('app-loading'), 350);
-  await initApp();
-  clearTimeout(slowLoadTimer);
   document.body.classList.remove('app-loading');
   document.body.classList.add('app-ready');
+  const emergencyReadyTimer = setTimeout(()=>{
+    document.body.classList.remove('app-loading');
+    document.body.classList.add('app-ready');
+  }, 1800);
+  try{
+    Promise.resolve().then(()=>initApp()).catch(function(err){
+      console.error('initApp error', err);
+      alert('La app ha entrado, pero hubo un error al cargar algunos datos: ' + (err?.message || String(err)));
+    }).finally(function(){
+      clearTimeout(emergencyReadyTimer);
+      document.body.classList.remove('app-loading');
+      document.body.classList.add('app-ready');
+    });
+  } catch(err) {
+    clearTimeout(emergencyReadyTimer);
+    document.body.classList.remove('app-loading');
+    document.body.classList.add('app-ready');
+    console.error('login init wrapper', err);
+  }
 }
 
 function doLogout(){
@@ -1706,6 +1661,8 @@ async function initApp(){
     topHotel.style.display = hName ? '' : 'none';
   }
 
+  const navNotes = document.getElementById('nav-notes');
+  if(navNotes) navNotes.style.display = 'none';
   // SuperAdmin only items
   ['nsec-admin','nav-admin','nav-hotels','nav-archive'].forEach(id => {
     const el = document.getElementById(id);
@@ -1730,14 +1687,16 @@ async function initApp(){
   // Show WhatsApp summary button for admin+
   const wabtn = document.getElementById('btn-whatsapp-summary');
   if(wabtn) wabtn.style.display = (isS||isA) ? '' : 'none';
-  // Apply config from DB — await so colors/fonts are ready before showing dashboard
-  await applyConfigFromDB();
+  // Render first; load config in background so the app never se quede bloqueada
+  navTo('dashboard');
+  Promise.resolve().then(()=>applyConfigFromDB()).then(()=>{
+    try{ renderDashboard(); }catch(e){}
+  }).catch(e=>console.warn('applyConfigFromDB',e));
   startAlarmChecker();
   startConfigRefresh();
   startRealtime();
   requestNotifPermission();
   registerServiceWorker();
-  navTo('dashboard');
 }
 
 async function applyConfigFromDB(){
@@ -1856,7 +1815,7 @@ function navTo(page,el){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById('page-'+page).classList.add('active');
   closeSidebar();
-  const renders={dashboard:renderDashboard,checklists:renderChecklists,incidents:renderIncidents,alarms:renderAlarms,team:renderTeam,reports:function(){ renderReportStats(); },admin:renderAdmin,hotels:renderHotels,archive:function(){ arcSetRange(7); },notes:function(){ loadNotes().then(function(){ renderNotes(); }); },agenda:function(){ loadNotes().then(function(){ renderAgenda(); }); }};
+  const renders={dashboard:renderDashboard,checklists:renderChecklists,incidents:renderIncidents,alarms:renderAlarms,team:renderTeam,reports:function(){ renderReportStats(); },admin:renderAdmin,hotels:renderHotels,archive:function(){ arcSetRange(7); },notes:function(){ loadNotes().then(function(){ navTo('agenda', document.getElementById('nav-agenda')); }); },agenda:function(){ loadNotes().then(function(){ renderAgenda(); }); }};
   if(renders[page])renders[page]();
 }
 
@@ -2452,24 +2411,33 @@ async function loadNotes(){
 
 // ── NOTES HELPERS ──────────────────────────────────────────────
 async function persistNote(key, content, author){
-  const bodyBase = {dept:key, content:content, updated_at:new Date().toISOString()};
+  const nowIso = new Date().toISOString();
+  const bodyBase = {dept:key, content:content, updated_at:nowIso};
   if(author) bodyBase.author = author;
   let lastErr = null;
+  const rawKey = String(key||'');
   const variants = [
-    { withHotel:true },
-    { withHotel:false }
+    { withHotel:true, filters:`?dept=eq.${rawKey}&hotel_id=eq.${activeHotelId}` },
+    { withHotel:false, filters:`?dept=eq.${rawKey}` },
+    { withHotel:true, filters:`?dept=eq.${encodeURIComponent(rawKey)}&hotel_id=eq.${activeHotelId}` },
+    { withHotel:false, filters:`?dept=eq.${encodeURIComponent(rawKey)}` }
   ];
   for(const variant of variants){
     try{
       const body = Object.assign({}, bodyBase, variant.withHotel ? {hotel_id:activeHotelId} : {});
-      const filters = variant.withHotel ? `?dept=eq.${encodeURIComponent(key)}&hotel_id=eq.${activeHotelId}` : `?dept=eq.${encodeURIComponent(key)}`;
-      const existing = await SB.get('nh_notes', filters);
+      let existing = [];
+      try{ existing = await SB.get('nh_notes', variant.filters); }catch(e){ existing = []; }
       if(existing && existing.length > 0){
-        await SB.patch('nh_notes', filters, body);
+        const rowId = existing[0].id;
+        if(rowId){
+          await SB.patch('nh_notes', `?id=eq.${rowId}`, body);
+        } else {
+          await SB.patch('nh_notes', variant.filters, body);
+        }
       } else {
         await SB.post('nh_notes', body);
       }
-      NOTES[key] = {content:content, raw:(String(key||'').indexOf('agenda:')===0 ? content : ''), updatedAt: new Date().toISOString(), author: author||''};
+      NOTES[key] = {content:content, raw:(String(key||'').indexOf('agenda:')===0 ? content : ''), updatedAt: nowIso, author: author||''};
       return true;
     }catch(e){ lastErr = e; }
   }
@@ -2860,6 +2828,43 @@ function editIncident(id){
   openModal('modal-incident');
 }
 
+
+async function persistIncidentRow(mode, payload, id){
+  let lastErr = null;
+  const tries = [];
+  if(mode === 'create'){
+    tries.push(payload);
+    tries.push(Object.fromEntries(Object.entries(payload).filter(([k]) => k !== 'updated_at')));
+    tries.push(Object.fromEntries(Object.entries(payload).filter(([k]) => k !== 'assigned_to')));
+    tries.push(Object.fromEntries(Object.entries(payload).filter(([k]) => !['updated_at','assigned_to'].includes(k))));
+    const payloadArray = {...payload, assigned_to: Array.isArray(payload.assigned_to) ? payload.assigned_to : (function(){
+      try { return JSON.parse(payload.assigned_to || '[]'); } catch(e){ return []; }
+    })()};
+    tries.push(payloadArray);
+    tries.push(Object.fromEntries(Object.entries(payloadArray).filter(([k]) => k !== 'updated_at')));
+    for(const body of tries){
+      try{
+        const rows = await SB.post('nh_incidents', body);
+        return Array.isArray(rows) ? rows[0] : rows;
+      }catch(e){ lastErr = e; }
+    }
+  } else {
+    tries.push(payload);
+    tries.push(Object.fromEntries(Object.entries(payload).filter(([k]) => k !== 'assigned_to')));
+    const payloadArray = {...payload, assigned_to: Array.isArray(payload.assigned_to) ? payload.assigned_to : (function(){
+      try { return JSON.parse(payload.assigned_to || '[]'); } catch(e){ return []; }
+    })()};
+    tries.push(payloadArray);
+    for(const body of tries){
+      try{
+        const rows = await SB.patch('nh_incidents','?id=eq.'+id, body);
+        return Array.isArray(rows) ? rows[0] : rows;
+      }catch(e){ lastErr = e; }
+    }
+  }
+  throw lastErr || new Error('No se pudo guardar la incidencia');
+}
+
 async function saveIncident(){
   try{
     const id=parseInt(document.getElementById('inc-f-id').value)||0;
@@ -2871,33 +2876,44 @@ async function saveIncident(){
     const desc=(document.getElementById('inc-f-desc').value||'').trim();
     const note=(document.getElementById('inc-f-note').value||'').trim();
     const assignedSel=document.getElementById('inc-f-assigned');
-    const assigned_to=assignedSel?Array.from(assignedSel.selectedOptions).map(o=>parseInt(o.value)).filter(Boolean):[];
+    const assignedIds=assignedSel?Array.from(assignedSel.selectedOptions).map(o=>parseInt(o.value)).filter(Boolean):[];
     const alarmTime=document.getElementById('inc-f-alarm')?.value||'';
     if(!title){toast('✗ Escribe un título');return;}
     if(!activeHotelId){toast('✗ No hay hotel activo seleccionado');return;}
     if(cu.role==='EMPLOYEE' && dept !== cu.dept){toast('✗ Solo puedes crear incidencias de tu departamento');return;}
     if(cu.role==='ADMIN' && dept !== cu.dept){toast('✗ Solo puedes gestionar incidencias de tu departamento');return;}
+
+    const assignedAsString = JSON.stringify(assignedIds);
+
     if(id){
       const inc=INCIDENTS.find(i=>i.id===id);if(!inc)return;
       const prevStatus=inc.status;
-      Object.assign(inc,{title,dept,prio,status,desc});
+      Object.assign(inc,{title,dept,prio,status,desc,assigned_to:assignedAsString});
+      if(!Array.isArray(inc.history)) inc.history = [];
       if(note) inc.history.push({date:nowStr(),text:note+' — '+cu.name});
       if(status!==prevStatus) inc.history.push({date:nowStr(),text:'Estado: '+prevStatus+' → '+status+' por '+cu.name});
-      await SB.patch('nh_incidents','?id=eq.'+id,{title,dept,prio,status,description:desc,history:inc.history,assigned_to:JSON.stringify(assigned_to),updated_at:new Date().toISOString()});
+      const updatePayload = {title,dept,prio,status,description:desc,assigned_to:assignedAsString,updated_at:new Date().toISOString(),history:inc.history};
+      await persistIncidentRow('update', updatePayload, id);
       toast('✓ Incidencia actualizada');
     } else {
       const createdIso=new Date().toISOString();
-      const newInc={title,dept,prio,status:'ABIERTA',desc,history:[{date:nowStr(),text:'Creada por '+cu.name}],at:createdIso,by:cu.id,id:IDS.inc++};
-      const savedRows=await SB.post('nh_incidents',{hotel_id:activeHotelId,title,dept,prio,status:'ABIERTA',description:desc,assigned_to:JSON.stringify(assigned_to),created_by:cu.id,created_at:createdIso,updated_at:createdIso,history:newInc.history});
-      const saved=(Array.isArray(savedRows)&&savedRows[0])?savedRows[0]:null;
-      if(saved){ newInc.id=saved.id; newInc.at=saved.created_at||createdIso; }
+      const newInc={title,dept,prio,status:'ABIERTA',desc,history:[{date:nowStr(),text:'Creada por '+cu.name}],at:createdIso,by:cu.id,id:IDS.inc++,assigned_to:assignedAsString};
+      const createPayload = {hotel_id:activeHotelId,title,dept,prio,status:'ABIERTA',description:desc,assigned_to:assignedAsString,created_by:cu.id,created_at:createdIso,updated_at:createdIso,history:newInc.history};
+      const saved = await persistIncidentRow('create', createPayload);
+      if(saved){ newInc.id=saved.id||newInc.id; newInc.at=saved.created_at||createdIso; }
       INCIDENTS.unshift(newInc);
       toast('✓ Incidencia creada');
     }
+
     if(alarmTime){
       const alarmObj={hotel_id:activeHotelId,title:'[Inc] '+title,note:dept+' — '+(desc||'').slice(0,80),alarm_time:alarmTime,dept:dept,done:false,created_by:cu.id};
-      try{const sa=await SB.post('nh_alarms',alarmObj); const row=(Array.isArray(sa)&&sa[0])?sa[0]:null; ALARMS.unshift({...alarmObj,id:row?row.id:Date.now()});}catch(e){ console.warn('Alarm create error', e); }
+      try{
+        const sa=await SB.post('nh_alarms',alarmObj);
+        const row=(Array.isArray(sa)&&sa[0])?sa[0]:null;
+        ALARMS.unshift({...alarmObj,id:row?row.id:Date.now()});
+      }catch(e){ console.warn('Alarm create error', e); }
     }
+
     closeModal('modal-incident');
     buildNotifications();
     updateBadges();
@@ -3094,6 +3110,11 @@ async function saveAgenda(){
     alert('No se ha podido guardar la agenda: ' + (e?.message || JSON.stringify(e)));
   }
 }
+window.agendaMoveDay = agendaMoveDay;
+window.agendaJumpToday = agendaJumpToday;
+window.saveAgenda = saveAgenda;
+window.selectAgendaUser = selectAgendaUser;
+
 async function doneAlarm(id){
   const a = ALARMS.find(x => x.id===id);
   if (!a) return;
@@ -3374,7 +3395,7 @@ async function runDiagnostics(){
     { name:'nh_checklist', label:'Checklists',            write:false },
     { name:'nh_alarms',    label:'Alarmas',              write:false },
     { name:'nh_templates', label:'Plantillas',            write:false },
-    { name:'nh_notes',     label:'Bloc de Notas',        write:false },
+    { name:'nh_notes',     label:'Agenda / notas privadas',        write:false },
     { name:'nh_hotels',    label:'Hoteles',              write:false },
     { name:'nh_config',    label:'Configuración',        write:true  },
   ];
@@ -4810,7 +4831,7 @@ function handleRealtimeChange(table, type, rec, change) {
 
   } else if (table === 'nh_notes') {
     // Reload notes silently
-    loadNotes().then(() => { if (document.getElementById('page-notes').classList.contains('active')) renderNotes(); });
+    loadNotes().then(() => { if (document.getElementById('page-agenda') && document.getElementById('page-agenda').classList.contains('active')) renderAgenda(); });
   } else if (table === 'nh_config') {
     // Config changed by SuperAdmin — apply instantly on ALL devices
     applyConfigFromDB();
