@@ -48,6 +48,10 @@
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 html { font-size: 17px; overscroll-behavior: none; }
 body { font-family:var(--font-body,'DM Sans',sans-serif); background:var(--cream); color:var(--ink); min-height:100vh; overflow-x:hidden; }
+body.app-loading #app { visibility:hidden; }
+body.app-ready #app { visibility:visible; }
+body.app-loading .topbar, body.app-loading .sidebar, body.app-loading .main { visibility:hidden; }
+
 button { font-family:'DM Sans',sans-serif; cursor:pointer; }
 input, select, textarea { font-family:'DM Sans',sans-serif; }
 a { color:inherit; text-decoration:none; }
@@ -577,7 +581,7 @@ input, select, textarea { max-width:100%; }
 .mob-nav-logout svg { stroke:#8b1a1a !important; }
 </style>
 </head>
-<body>
+<body class="app-loading">
 
 <!-- ─── LOGIN ─────────────────────────────────────────────────────────── -->
 <div id="login-screen">
@@ -650,6 +654,7 @@ input, select, textarea { max-width:100%; }
     <div class="nav-item" id="nav-team" onclick="navTo('team',this)"><span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#2e4a1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></span> Equipo</div>
     <div class="nav-item" id="nav-reports" onclick="navTo('reports',this)"><span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#2e4a1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></span> Informes</div>
     <div class="nav-item" id="nav-notes" onclick="navTo('notes',this)"><span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#2e4a1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></span> Bloc de Notas</div>
+    <div class="nav-item" id="nav-agenda" onclick="navTo('agenda',this)"><span class="nav-icon">📗</span> Agenda</div>
     <div class="nav-section" id="nsec-admin" style="display:none">Administración</div>
     <div class="nav-item" id="nav-admin" onclick="navTo('admin',this)" style="display:none"><span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#2e4a1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span> Admin</div>
     <div class="nav-item" id="nav-hotels" onclick="navTo('hotels',this)" style="display:none"><span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#2e4a1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span> Hoteles</div>
@@ -870,6 +875,35 @@ input, select, textarea { max-width:100%; }
               <button class="btn btn-outline" onclick="downloadReport('mensual','csv')"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#2e4a1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg> Exportar CSV</button>
               <button class="btn btn-outline" onclick="downloadReport('mensual','excel')" style="border-color:#217346;color:#217346">📊 Excel</button>
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ── AGENDA ── -->
+    <div class="page" id="page-agenda">
+      <div class="page-header">
+        <div><div class="page-title">Agenda</div><div class="page-subtitle" id="agenda-subtitle">Tu agenda privada diaria. Puedes usar ## para crear títulos verdes.</div></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-outline btn-sm" onclick="insertAgendaHeading()">## Título</button>
+          <button class="btn btn-green btn-sm" onclick="saveAgenda()">💾 Guardar Agenda</button>
+        </div>
+      </div>
+      <div id="agenda-sa-tabs" class="chip-row" style="margin-bottom:14px"></div>
+      <div class="grid-2" style="grid-template-columns:minmax(300px,1.1fr) minmax(260px,0.9fr);align-items:start">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Editor</div></div>
+          <div class="card-body">
+            <div style="font-size:12px;color:var(--ink-muted);margin-bottom:10px">Escribe en líneas simples. Usa <b>##</b> al inicio para crear apartados. Solo tú y Super Admin podéis ver esta agenda.</div>
+            <textarea id="agenda-editor" class="form-textarea" style="min-height:420px;font-family:Georgia,serif;line-height:1.8;resize:vertical" placeholder="## Turno mañana&#10;- Revisar pendientes&#10;- Comentar con recepción&#10;&#10;## Ideas&#10;- ..."></textarea>
+            <div id="agenda-meta" style="margin-top:10px;font-size:12px;color:var(--ink-muted)">Sin guardar aún</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Vista previa</div></div>
+          <div class="card-body">
+            <div id="agenda-preview" style="min-height:420px;line-height:1.8"></div>
           </div>
         </div>
       </div>
@@ -1205,6 +1239,7 @@ WHERE id NOT IN (
     <div class="modal-head"><div class="modal-title" id="modal-inc-title">Nueva Incidencia</div><button class="modal-close" onclick="closeModal('modal-incident')"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#2e4a1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
     <div class="modal-body">
       <input type="hidden" id="inc-f-id">
+      <input type="hidden" id="af-id" value="0">
       <label class="form-label">Título *</label>
       <input class="form-input" id="inc-f-title" placeholder="Describe brevemente la incidencia">
       <label class="form-label">Departamento</label>
@@ -1307,7 +1342,7 @@ WHERE id NOT IN (
 <!-- Alarm form -->
 <div class="modal-ov" id="modal-alarm">
   <div class="modal-box">
-    <div class="modal-head"><div class="modal-title">Nueva Alarma</div><button class="modal-close" onclick="closeModal('modal-alarm')"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#2e4a1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-head"><div class="modal-title" id="modal-alarm-title">Nueva Alarma</div><button class="modal-close" onclick="closeModal('modal-alarm')"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#2e4a1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
     <div class="modal-body">
       <label class="form-label">Título *</label>
       <input class="form-input" id="af-title" placeholder="Ej: Llamar a Jordan">
@@ -1320,7 +1355,7 @@ WHERE id NOT IN (
     </div>
     <div class="modal-foot">
       <button class="btn btn-outline" onclick="closeModal('modal-alarm')">Cancelar</button>
-      <button class="btn btn-green" onclick="saveAlarm()">Crear Alarma</button>
+      <button class="btn btn-green" id="af-save-btn" onclick="saveAlarm()">Crear Alarma</button>
     </div>
   </div>
 </div>
@@ -1523,7 +1558,11 @@ async function doLogin(userObj){
   try { if(rememberMe) localStorage.setItem('noctis_session', JSON.stringify({email:u.email, pwd:u.pwd})); } catch(e) {}
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
-  initApp();
+  document.body.classList.add('app-loading');
+  document.body.classList.remove('app-ready');
+  await initApp();
+  document.body.classList.remove('app-loading');
+  document.body.classList.add('app-ready');
 }
 
 function doLogout(){
@@ -1536,6 +1575,8 @@ function doLogout(){
   try { localStorage.removeItem('noctis_session'); } catch(e) {}
   document.getElementById('app').style.display = 'none';
   document.getElementById('login-screen').style.display = 'flex';
+  document.body.classList.add('app-loading');
+  document.body.classList.remove('app-ready');
 }
 
 // ── STARTUP ──────────────────────────────────────────────────
@@ -1738,7 +1779,7 @@ function navTo(page,el){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById('page-'+page).classList.add('active');
   closeSidebar();
-  const renders={dashboard:renderDashboard,checklists:renderChecklists,incidents:renderIncidents,alarms:renderAlarms,team:renderTeam,reports:function(){ renderReportStats(); },admin:renderAdmin,hotels:renderHotels,archive:function(){ arcSetRange(7); },notes:function(){ loadNotes().then(function(){ renderNotes(); }); }};
+  const renders={dashboard:renderDashboard,checklists:renderChecklists,incidents:renderIncidents,alarms:renderAlarms,team:renderTeam,reports:function(){ renderReportStats(); },admin:renderAdmin,hotels:renderHotels,archive:function(){ arcSetRange(7); },notes:function(){ loadNotes().then(function(){ renderNotes(); }); },agenda:function(){ loadNotes().then(function(){ renderAgenda(); }); }};
   if(renders[page])renders[page]();
 }
 
@@ -2321,13 +2362,13 @@ async function loadNotes(){
   try{
     const rows = await SB.get('nh_notes', `?hotel_id=eq.${activeHotelId}`);
     NOTES = {};
-    (rows||[]).forEach(r=>{ NOTES[r.dept]={content:r.content,updatedAt:r.updated_at,author:r.author||''}; });
+    (rows||[]).forEach(r=>{ NOTES[r.dept]={content:r.content,raw:(String(r.dept||'').indexOf('agenda:')===0 ? (r.content||'') : ''),updatedAt:r.updated_at,author:r.author||''}; });
   }catch(e){
     // fallback: no hotel_id column yet
     try {
       const rows = await SB.get('nh_notes','');
       NOTES = {};
-      (rows||[]).forEach(r=>{ NOTES[r.dept]={content:r.content,updatedAt:r.updated_at,author:r.author||''}; });
+      (rows||[]).forEach(r=>{ NOTES[r.dept]={content:r.content,raw:(String(r.dept||'').indexOf('agenda:')===0 ? (r.content||'') : ''),updatedAt:r.updated_at,author:r.author||''}; });
     }catch(e2){}
   }
 }
@@ -2344,7 +2385,7 @@ async function persistNote(key, content, author){
     } else {
       await SB.post('nh_notes', body);
     }
-    NOTES[key] = {content:content, updatedAt: new Date().toISOString(), author: author||''};
+    NOTES[key] = {content:content, raw:(String(key||'').indexOf('agenda:')===0 ? content : ''), updatedAt: new Date().toISOString(), author: author||''};
   }catch(e){ console.warn('Notes save error:', e); }
 }
 
@@ -2757,7 +2798,7 @@ async function saveIncident(){
   } else {
     const newInc={title,dept,prio,status:'ABIERTA',desc,history:[{date:nowStr(),text:'Creada por '+cu.name}],at:nowStr(),by:cu.id,id:IDS.inc++};
     try{
-      const [saved]=await SB.post('nh_incidents',{hotel_id:activeHotelId,title,dept,prio,status:'ABIERTA',description:desc,assigned_to:JSON.stringify(assigned_to),created_by:cu.id,created_at:dbNow(),history:newInc.history});
+      const [saved]=await SB.post('nh_incidents',{hotel_id:activeHotelId,title,dept,prio,status:'ABIERTA',description:desc,assigned_to:JSON.stringify(assigned_to),created_by:cu.id,created_at:nowStr(),history:newInc.history});
       if(saved) newInc.id=saved.id;
     } catch(e){ toast('✗ Error Supabase'); return; }
     INCIDENTS.unshift(newInc);
@@ -2798,7 +2839,7 @@ function renderAlarms(){
   let visibleAlarms = isS ? ALARMS : ALARMS.filter(a => a.dept===cu.dept || a.created_by===cu.id);
   if(!visibleAlarms.length){container.innerHTML='<div class="empty"><div class="empty-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#2e4a1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></div><div class="empty-text">Sin alarmas programadas</div><div class="empty-sub">Crea un recordatorio con el botón de arriba</div></div>';return;}
   container.innerHTML=visibleAlarms.map(a=>`
-    <div class="alarm-item${a.done?' done':''}">
+    <div class="alarm-item${a.done?' done':''}" onclick="openEditAlarm(${a.id})">
       <div class="alarm-left">
         <span style="font-size:20px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#2e4a1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></span>
         <div>
@@ -2808,36 +2849,76 @@ function renderAlarms(){
         </div>
       </div>
       <div class="alarm-actions">
-        ${!a.done?`<button class="btn btn-green btn-sm" onclick="doneAlarm(${a.id})"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#2e4a1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><polyline points="20 6 9 17 4 12"/></svg> Hecho</button>`:''}
+        <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();openEditAlarm(${a.id})">Editar</button>
+        ${!a.done?`<button class="btn btn-green btn-sm" onclick="event.stopPropagation();doneAlarm(${a.id})"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#2e4a1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><polyline points="20 6 9 17 4 12"/></svg> Hecho</button>`:''}
         <button class="btn btn-outline btn-sm" onclick="deleteAlarm(${a.id})" style="padding:7px 10px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#2e4a1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
       </div>
     </div>`).join('');
 }
 
+
 function openNewAlarm(){
+  document.getElementById('af-id').value='0';
+  document.getElementById('modal-alarm-title').textContent='Nueva Alarma';
+  document.getElementById('af-save-btn').textContent='Crear Alarma';
   document.getElementById('af-title').value='';
   document.getElementById('af-note').value='';
   const n=new Date();n.setMinutes(0);n.setSeconds(0);
   document.getElementById('af-time').value=n.toISOString().slice(0,16);
-  // Populate dept selector
   const deptSel=document.getElementById('af-dept');
   const isS=cu.role==='SUPER_ADMIN';
-  const depts=isS?['Todos',...DEPTS]:cu.role==='ADMIN'?[cu.dept,...USERS.filter(u=>u.active&&u.dept===cu.dept).map(u=>u.dept).filter((v,i,a)=>a.indexOf(v)===i)]:[cu.dept];
   const opts=isS?['Todos',...DEPTS]:[cu.dept];
   deptSel.innerHTML=opts.map(d=>`<option value="${d}">${d}</option>`).join('');
   deptSel.value=cu.dept;
-  if(isS){deptSel.disabled=false;}else{deptSel.disabled=true;}
+  deptSel.disabled=!isS;
+  openModal('modal-alarm');
+}
+
+function openEditAlarm(id){
+  const a = ALARMS.find(x => x.id===id);
+  if(!a) return;
+  const canEdit = cu.role==='SUPER_ADMIN' || a.created_by===cu.id || a.dept===cu.dept;
+  if(!canEdit){ toast('✗ No tienes permiso para editar esta alarma'); return; }
+  document.getElementById('af-id').value=String(id);
+  document.getElementById('modal-alarm-title').textContent='Editar Alarma';
+  document.getElementById('af-save-btn').textContent='Guardar cambios';
+  document.getElementById('af-title').value=a.title||'';
+  document.getElementById('af-note').value=a.note||'';
+  document.getElementById('af-time').value=(a.alarm_time||a.time||'').slice(0,16);
+  const deptSel=document.getElementById('af-dept');
+  const isS=cu.role==='SUPER_ADMIN';
+  const opts=isS?['Todos',...DEPTS]:[cu.dept];
+  deptSel.innerHTML=opts.map(d=>`<option value="${d}">${d}</option>`).join('');
+  deptSel.value=a.dept||cu.dept;
+  deptSel.disabled=!isS;
   openModal('modal-alarm');
 }
 
 async function saveAlarm(){
+  const alarmId=parseInt(document.getElementById('af-id').value)||0;
   const title=document.getElementById('af-title').value.trim();
   const note=document.getElementById('af-note').value.trim();
   const time=document.getElementById('af-time').value;
   const deptVal=document.getElementById('af-dept')?.value||cu.dept;
   if(!title){toast('✗ Escribe un título');return;}
   if(!time){toast('✗ Selecciona fecha y hora');return;}
-  // If 'Todos', create one alarm per dept
+
+  if(alarmId){
+    const existingLocal = ALARMS.find(x=>x.id===alarmId);
+    if(!existingLocal) { toast('✗ No se encuentra la alarma'); return; }
+    const canEdit = cu.role==='SUPER_ADMIN' || existingLocal.created_by===cu.id || existingLocal.dept===cu.dept;
+    if(!canEdit){ toast('✗ No tienes permiso para editar esta alarma'); return; }
+    const body={title,note,alarm_time:time,dept:deptVal,updated_at:new Date().toISOString()};
+    try{
+      await SB.patch('nh_alarms', `?id=eq.${alarmId}`, body);
+      Object.assign(existingLocal, body, {time});
+    }catch(e){toast('✗ Error al guardar la alarma');return;}
+    closeModal('modal-alarm');
+    buildNotifications();updateBadges();renderAlarms();renderDashboard();syncAlarmsToSW();
+    toast('✓ Alarma actualizada');
+    return;
+  }
+
   const targetDepts=deptVal==='Todos'?[...DEPTS,'Dirección']:[deptVal];
   try{
     for(const dept of targetDepts){
@@ -2847,9 +2928,97 @@ async function saveAlarm(){
     }
   }catch(e){toast('✗ Error Supabase');return;}
   closeModal('modal-alarm');
-  buildNotifications();updateBadges();renderAlarms();
+  buildNotifications();updateBadges();renderAlarms();renderDashboard();
   syncAlarmsToSW();
   toast('✓ Alarma creada'+(deptVal==='Todos'?' para todos los departamentos':''));
+}
+
+// ── AGENDA PRIVADA ───────────────────────────────────────────
+let agendaUserId = null;
+
+function agendaKeyFor(userId){ return 'agenda:'+String(userId); }
+
+function formatAgendaHTML(raw){
+  const safe = (raw||'')
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;');
+  const lines = safe.split(/\r?\n/);
+  return lines.map(line=>{
+    if(/^##\s+/.test(line)){
+      return `<div style="margin:14px 0 8px;font-family:'Cormorant Garamond',serif;font-size:1.35rem;font-weight:700;color:var(--forest)">${line.replace(/^##\s+/,'')}</div>`;
+    }
+    if(/^[-•]\s+/.test(line)){
+      return `<div style="padding-left:14px;position:relative;margin:6px 0"><span style="position:absolute;left:0;color:var(--forest)">•</span>${line.replace(/^[-•]\s+/,'')}</div>`;
+    }
+    if(!line.trim()) return '<div style="height:10px"></div>';
+    return `<div style="margin:6px 0">${line}</div>`;
+  }).join('');
+}
+
+function renderAgenda(){
+  const isS = cu.role==='SUPER_ADMIN';
+  const tabs = document.getElementById('agenda-sa-tabs');
+  const editor = document.getElementById('agenda-editor');
+  const preview = document.getElementById('agenda-preview');
+  const meta = document.getElementById('agenda-meta');
+  const subtitle = document.getElementById('agenda-subtitle');
+  if(!tabs||!editor||!preview) return;
+
+  if(isS){
+    const users = USERS.filter(u=>u.active!==false && u.role!=='SUPER_ADMIN');
+    if(!agendaUserId || !users.some(u=>String(u.id)===String(agendaUserId))) agendaUserId = users[0] ? users[0].id : cu.id;
+    tabs.innerHTML = users.map(u=>`<div class="chip${String(agendaUserId)===String(u.id)?' active':''}" onclick="selectAgendaUser(${u.id})">${u.name}</div>`).join('');
+    subtitle.textContent = 'Agenda privada de cada usuario. Solo la ve cada empleado y tú como Super Admin.';
+  } else {
+    agendaUserId = cu.id;
+    tabs.innerHTML = '';
+    subtitle.textContent = 'Tu agenda privada diaria. Solo la ves tú y el Super Admin.';
+  }
+
+  const key = agendaKeyFor(agendaUserId);
+  const note = NOTES[key];
+  const raw = note?.raw || '';
+  editor.value = raw;
+  editor.placeholder = '## Pendientes\n- Llamar proveedor\n- Comentar con recepción';
+  preview.innerHTML = raw.trim() ? formatAgendaHTML(raw) : '<div style="color:var(--ink-muted);font-style:italic">Tu vista previa aparecerá aquí.</div>';
+  const currentUser = USERS.find(u=>String(u.id)===String(agendaUserId)) || cu;
+  meta.textContent = note?.updatedAt ? `${currentUser.name} · Guardado: ${new Date(note.updatedAt).toLocaleString('es-ES')}` : `${currentUser.name} · Sin guardar aún`;
+  editor.oninput = function(){ preview.innerHTML = this.value.trim() ? formatAgendaHTML(this.value) : '<div style="color:var(--ink-muted);font-style:italic">Tu vista previa aparecerá aquí.</div>'; };
+}
+
+function selectAgendaUser(userId){
+  agendaUserId = userId;
+  renderAgenda();
+}
+
+function insertAgendaHeading(){
+  const editor = document.getElementById('agenda-editor');
+  if(!editor) return;
+  const start = editor.selectionStart ?? editor.value.length;
+  const before = editor.value.slice(0,start);
+  const after = editor.value.slice(start);
+  const prefix = (before && !before.endsWith('\n')) ? '\n' : '';
+  editor.value = before + prefix + '## ' + after;
+  editor.focus();
+  const pos = (before + prefix + '## ').length;
+  editor.setSelectionRange(pos,pos);
+  editor.dispatchEvent(new Event('input'));
+}
+
+async function saveAgenda(){
+  const editor = document.getElementById('agenda-editor');
+  if(!editor) return;
+  const targetUserId = (cu.role==='SUPER_ADMIN' && agendaUserId) ? agendaUserId : cu.id;
+  const key = agendaKeyFor(targetUserId);
+  const raw = editor.value || '';
+  const html = formatAgendaHTML(raw);
+  await persistNote(key, raw, cu.name);
+  NOTES[key] = Object.assign({}, NOTES[key]||{}, {content:raw, raw:raw, updatedAt:new Date().toISOString(), author:cu.name});
+  const meta = document.getElementById('agenda-meta');
+  const targetUser = USERS.find(u=>String(u.id)===String(targetUserId)) || cu;
+  if(meta) meta.textContent = `${targetUser.name} · Guardado: ${new Date().toLocaleString('es-ES')}`;
+  toast('✓ Agenda guardada');
 }
 
 async function doneAlarm(id){
@@ -4321,7 +4490,6 @@ function toast(msg){
 }
 
 function nowStr(){return new Date().toLocaleString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}).replace(',','');}
-function dbNow(){return new Date().toISOString();}
 
 function roleLabel(r){return{SUPER_ADMIN:'Super Admin',ADMIN:'Admin Dpto.',EMPLOYEE:'Empleado'}[r]||r;}
 function roleBadge(r){return{SUPER_ADMIN:'badge-gold',ADMIN:'badge-blue',EMPLOYEE:'badge-gray'}[r]||'badge-gray';}
