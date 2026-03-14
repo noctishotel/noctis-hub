@@ -48,10 +48,11 @@
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 html { font-size: 17px; overscroll-behavior: none; }
 body { font-family:var(--font-body,'DM Sans',sans-serif); background:var(--cream); color:var(--ink); min-height:100vh; overflow-x:hidden; }
-body.app-loading #app { opacity:0; pointer-events:none; }
-body.app-ready #app { opacity:1; transition:opacity .18s ease; }
-#app-loading-overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(246,242,233,.96);backdrop-filter:blur(3px);z-index:9999;}
-body.app-loading #app-loading-overlay{display:flex;}
+body.app-loading #app { opacity:1; pointer-events:none; }
+body.app-ready #app { opacity:1; transition:opacity .12s ease; }
+#app-loading-overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(246,242,233,.72);backdrop-filter:blur(2px);z-index:9999;opacity:0;}
+body.app-loading #app-loading-overlay{display:flex;animation:nhOverlayIn .18s ease .55s forwards;}
+@keyframes nhOverlayIn{to{opacity:1;}}
 .loading-shell{display:flex;flex-direction:column;align-items:center;gap:14px;color:var(--forest);text-align:center;padding:24px;}
 .loading-mark{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:700;line-height:1.05;}
 .loading-sub{font-size:.9rem;color:var(--ink-muted);} 
@@ -343,7 +344,7 @@ td { padding:13px 16px; font-size: 0.941rem; color:var(--ink); vertical-align:mi
   .kpi-grid { grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; }
   .kpi-card { padding:14px 12px; }
   .kpi-value { font-size:2rem; }
-  .kpi-label { font-size:0.56rem; letter-spacing:0.05em; }
+  .kpi-label { font-size:0.62rem; letter-spacing:0.04em; }
   .kpi-icon { font-size:1.2rem; margin-bottom:6px; }
 
   /* ALL grids → 1 column */
@@ -466,7 +467,8 @@ td { padding:13px 16px; font-size: 0.941rem; color:var(--ink); vertical-align:mi
 .inc-title, .inc-title-text, .dept-bar-name, .card-title, .page-title, .page-subtitle, td, th {
   word-break:normal !important; overflow-wrap:normal !important; hyphens:none;
 }
-#dept-table td:first-child, #dept-table th:first-child { min-width:150px; }
+#dept-table td:first-child, #dept-table th:first-child { min-width:185px; }
+.dept-name-nowrap{display:inline-flex;align-items:center;gap:8px;white-space:nowrap;word-break:keep-all;overflow-wrap:normal;}
 #dash-recent-inc .inc-item, #inc-list .inc-item { min-width:0; }
 .agenda-paper{background:#fff; border:1px solid var(--border); border-radius:18px; box-shadow:var(--shadow); overflow:hidden;}
 .agenda-paper-top{padding:18px 22px; border-bottom:1px solid var(--border); background:linear-gradient(180deg,#fff,#fbf8f1);}
@@ -484,8 +486,9 @@ td { padding:13px 16px; font-size: 0.941rem; color:var(--ink); vertical-align:mi
 #agenda-editor-html li{margin:0 0 6px;}
 .agenda-footer-meta{padding:14px 22px;border-top:1px solid var(--border);font-size:.82rem;color:var(--ink-muted);background:#fff;}
 @media (max-width:768px){
-  #page-dashboard .grid-2, #page-dashboard .grid-4 { grid-template-columns:1fr !important; }
-  .kpi-grid { grid-template-columns:1fr !important; }
+  #page-dashboard .grid-2 { grid-template-columns:1fr !important; }
+  #page-dashboard .grid-4 { grid-template-columns:1fr 1fr !important; }
+  .kpi-grid { grid-template-columns:1fr 1fr !important; }
   .agenda-paper-top, .agenda-toolbar, .agenda-editor-wrap, .agenda-footer-meta { padding-left:16px; padding-right:16px; }
   .agenda-date-title { font-size:1.55rem; }
   #agenda-editor-html { min-height:340px; font-size:1.04rem; line-height:1.75; }
@@ -640,7 +643,7 @@ input, select, textarea { max-width:100%; }
 .mob-nav-logout svg { stroke:#8b1a1a !important; }
 </style>
 </head>
-<body class="app-loading">
+<body class="app-ready">
 <div id="app-loading-overlay"><div class="loading-shell"><div class="loading-spinner"></div><div class="loading-mark">Noctis<br>Hub</div><div class="loading-sub">Cargando tu espacio…</div></div></div>
 
 <!-- ─── LOGIN ─────────────────────────────────────────────────────────── -->
@@ -713,7 +716,7 @@ input, select, textarea { max-width:100%; }
     <div class="nav-section">Equipo</div>
     <div class="nav-item" id="nav-team" onclick="navTo('team',this)"><span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#2e4a1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></span> Equipo</div>
     <div class="nav-item" id="nav-reports" onclick="navTo('reports',this)"><span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#2e4a1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></span> Informes</div>
-    <div class="nav-item" id="nav-notes" onclick="navTo('notes',this)"><span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#2e4a1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></span> Bloc de Notas</div>
+    
     <div class="nav-item" id="nav-agenda" onclick="navTo('agenda',this)"><span class="nav-icon">📗</span> Agenda</div>
     <div class="nav-section" id="nsec-admin" style="display:none">Administración</div>
     <div class="nav-item" id="nav-admin" onclick="navTo('admin',this)" style="display:none"><span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="#2e4a1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-0.15em;flex-shrink:0"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span> Admin</div>
@@ -944,7 +947,7 @@ input, select, textarea { max-width:100%; }
     <!-- ── AGENDA ── -->
     <div class="page" id="page-agenda">
       <div class="page-header">
-        <div><div class="page-title">Agenda</div><div class="page-subtitle" id="agenda-subtitle">Una agenda diaria privada por usuario. Solo la ve cada empleado y tú como Super Admin.</div></div>
+        <div><div class="page-title">Agenda</div><div class="page-subtitle" id="agenda-subtitle">Agenda diaria privada por usuario. Cada empleado solo ve la suya y tú como Super Admin puedes revisar todas, incluida la tuya.</div></div>
         <div class="agenda-header-actions">
           <button class="btn btn-outline btn-sm" onclick="agendaJumpToday()">Hoy</button>
           <button class="btn btn-green btn-sm" onclick="saveAgenda()">💾 Guardar</button>
@@ -1631,9 +1634,10 @@ async function doLogin(userObj){
   try { if(rememberMe) localStorage.setItem('noctis_session', JSON.stringify({email:u.email, pwd:u.pwd})); } catch(e) {}
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
-  document.body.classList.add('app-loading');
   document.body.classList.remove('app-ready');
+  const slowLoadTimer = setTimeout(()=>document.body.classList.add('app-loading'), 350);
   await initApp();
+  clearTimeout(slowLoadTimer);
   document.body.classList.remove('app-loading');
   document.body.classList.add('app-ready');
 }
@@ -1648,8 +1652,8 @@ function doLogout(){
   try { localStorage.removeItem('noctis_session'); } catch(e) {}
   document.getElementById('app').style.display = 'none';
   document.getElementById('login-screen').style.display = 'flex';
-  document.body.classList.add('app-loading');
-  document.body.classList.remove('app-ready');
+  document.body.classList.remove('app-loading');
+  document.body.classList.add('app-ready');
 }
 
 // ── STARTUP ──────────────────────────────────────────────────
@@ -1983,7 +1987,7 @@ function renderDashboard(){
     const oi=INCIDENTS.filter(i=>i.dept===d&&i.status==='ABIERTA').length;
     const statusLabel=pct===100?'<span class="badge badge-green">✓ Al día</span>':pct>0?'<span class="badge badge-amber">En Curso</span>':'<span class="badge badge-gray">Pendiente</span>';
     return `<tr>
-      <td>${D_ICONS[d]||''} ${d}</td>
+      <td><span class="dept-name-nowrap">${D_ICONS[d]||''}<span>${d}</span></span></td>
       <td style="cursor:pointer" onclick="incDeptFilter='all';navTo('checklists',document.getElementById('nav-checklists'))"><div style="display:flex;align-items:center;gap:7px"><div class="progress-bg" style="width:70px;height:6px"><div class="progress-fill" style="width:${pct}%"></div></div><span style="font-size:11px;color:var(--ink-muted)">${pct}%</span></div></td>
       <td style="cursor:pointer" onclick="incDeptFilter='${d}';navTo('incidents',document.getElementById('nav-incidents'))">${oi>0?`<span class="badge badge-red" style="cursor:pointer">${oi}</span>`:`<span class="badge badge-green">0</span>`}</td>
       <td>${statusLabel}</td>
@@ -2448,18 +2452,29 @@ async function loadNotes(){
 
 // ── NOTES HELPERS ──────────────────────────────────────────────
 async function persistNote(key, content, author){
-  try{
-    const enc = encodeURIComponent(key);
-    const existing = await SB.get('nh_notes', `?dept=eq.${enc}&hotel_id=eq.${activeHotelId}`);
-    const body = {dept:key, content:content, updated_at:new Date().toISOString(), hotel_id:activeHotelId};
-    if(author) body.author = author;
-    if(existing && existing.length > 0){
-      await SB.patch('nh_notes', `?dept=eq.${enc}&hotel_id=eq.${activeHotelId}`, body);
-    } else {
-      await SB.post('nh_notes', body);
-    }
-    NOTES[key] = {content:content, raw:(String(key||'').indexOf('agenda:')===0 ? content : ''), updatedAt: new Date().toISOString(), author: author||''};
-  }catch(e){ console.warn('Notes save error:', e); }
+  const bodyBase = {dept:key, content:content, updated_at:new Date().toISOString()};
+  if(author) bodyBase.author = author;
+  let lastErr = null;
+  const variants = [
+    { withHotel:true },
+    { withHotel:false }
+  ];
+  for(const variant of variants){
+    try{
+      const body = Object.assign({}, bodyBase, variant.withHotel ? {hotel_id:activeHotelId} : {});
+      const filters = variant.withHotel ? `?dept=eq.${encodeURIComponent(key)}&hotel_id=eq.${activeHotelId}` : `?dept=eq.${encodeURIComponent(key)}`;
+      const existing = await SB.get('nh_notes', filters);
+      if(existing && existing.length > 0){
+        await SB.patch('nh_notes', filters, body);
+      } else {
+        await SB.post('nh_notes', body);
+      }
+      NOTES[key] = {content:content, raw:(String(key||'').indexOf('agenda:')===0 ? content : ''), updatedAt: new Date().toISOString(), author: author||''};
+      return true;
+    }catch(e){ lastErr = e; }
+  }
+  console.warn('Notes save error:', lastErr);
+  throw lastErr || new Error('No se pudo guardar la nota');
 }
 
 async function deleteNoteByKey(key){
@@ -2846,47 +2861,52 @@ function editIncident(id){
 }
 
 async function saveIncident(){
-  const id=parseInt(document.getElementById('inc-f-id').value)||0;
-  const title=document.getElementById('inc-f-title').value.trim();
-  const dept=document.getElementById('inc-f-dept').value;
-  const prio=document.getElementById('inc-f-prio').value;
-  const status=document.getElementById('inc-f-status').value;
-  const desc=document.getElementById('inc-f-desc').value.trim();
-  const note=document.getElementById('inc-f-note').value.trim();
-  const assignedSel=document.getElementById('inc-f-assigned');
-  const assigned_to=assignedSel?Array.from(assignedSel.selectedOptions).map(o=>parseInt(o.value)):[];
-  const alarmTime=document.getElementById('inc-f-alarm')?.value||'';
-  if(!title){toast('✗ Escribe un título');return;}
-  if(cu.role==='EMPLOYEE' && dept !== cu.dept){toast('✗ Solo puedes crear incidencias de tu departamento');return;}
-  if(cu.role==='ADMIN' && dept !== cu.dept){toast('✗ Solo puedes gestionar incidencias de tu departamento');return;}
-  if(id){
-    const inc=INCIDENTS.find(i=>i.id===id);if(!inc)return;
-    const prevStatus=inc.status;
-    Object.assign(inc,{title,dept,prio,status,desc});
-    if(note) inc.history.push({date:nowStr(),text:note+' — '+cu.name});
-    if(status!==prevStatus) inc.history.push({date:nowStr(),text:'Estado: '+prevStatus+' → '+status+' por '+cu.name});
-    try{ await SB.patch('nh_incidents','?id=eq.'+id,{title,dept,prio,status,description:desc,history:inc.history,assigned_to:JSON.stringify(assigned_to),updated_at:new Date().toISOString()}); }
-    catch(e){ toast('✗ Error Supabase'); return; }
-    toast('✓ Incidencia actualizada');
-  } else {
-    const newInc={title,dept,prio,status:'ABIERTA',desc,history:[{date:nowStr(),text:'Creada por '+cu.name}],at:nowStr(),by:cu.id,id:IDS.inc++};
-    try{
-      const [saved]=await SB.post('nh_incidents',{hotel_id:activeHotelId,title,dept,prio,status:'ABIERTA',description:desc,assigned_to:JSON.stringify(assigned_to),created_by:cu.id,created_at:nowStr(),history:newInc.history});
-      if(saved) newInc.id=saved.id;
-    } catch(e){ toast('✗ Error Supabase'); return; }
-    INCIDENTS.unshift(newInc);
-    toast('✓ Incidencia creada');
+  try{
+    const id=parseInt(document.getElementById('inc-f-id').value)||0;
+    const title=(document.getElementById('inc-f-title').value||'').trim();
+    const deptEl=document.getElementById('inc-f-dept');
+    const dept=(cu.role==='EMPLOYEE'||cu.role==='ADMIN') ? cu.dept : ((deptEl&&deptEl.value)||cu.dept||'');
+    const prio=document.getElementById('inc-f-prio').value;
+    const status=(document.getElementById('inc-f-status').value||'ABIERTA').toUpperCase();
+    const desc=(document.getElementById('inc-f-desc').value||'').trim();
+    const note=(document.getElementById('inc-f-note').value||'').trim();
+    const assignedSel=document.getElementById('inc-f-assigned');
+    const assigned_to=assignedSel?Array.from(assignedSel.selectedOptions).map(o=>parseInt(o.value)).filter(Boolean):[];
+    const alarmTime=document.getElementById('inc-f-alarm')?.value||'';
+    if(!title){toast('✗ Escribe un título');return;}
+    if(!activeHotelId){toast('✗ No hay hotel activo seleccionado');return;}
+    if(cu.role==='EMPLOYEE' && dept !== cu.dept){toast('✗ Solo puedes crear incidencias de tu departamento');return;}
+    if(cu.role==='ADMIN' && dept !== cu.dept){toast('✗ Solo puedes gestionar incidencias de tu departamento');return;}
+    if(id){
+      const inc=INCIDENTS.find(i=>i.id===id);if(!inc)return;
+      const prevStatus=inc.status;
+      Object.assign(inc,{title,dept,prio,status,desc});
+      if(note) inc.history.push({date:nowStr(),text:note+' — '+cu.name});
+      if(status!==prevStatus) inc.history.push({date:nowStr(),text:'Estado: '+prevStatus+' → '+status+' por '+cu.name});
+      await SB.patch('nh_incidents','?id=eq.'+id,{title,dept,prio,status,description:desc,history:inc.history,assigned_to:JSON.stringify(assigned_to),updated_at:new Date().toISOString()});
+      toast('✓ Incidencia actualizada');
+    } else {
+      const createdIso=new Date().toISOString();
+      const newInc={title,dept,prio,status:'ABIERTA',desc,history:[{date:nowStr(),text:'Creada por '+cu.name}],at:createdIso,by:cu.id,id:IDS.inc++};
+      const savedRows=await SB.post('nh_incidents',{hotel_id:activeHotelId,title,dept,prio,status:'ABIERTA',description:desc,assigned_to:JSON.stringify(assigned_to),created_by:cu.id,created_at:createdIso,updated_at:createdIso,history:newInc.history});
+      const saved=(Array.isArray(savedRows)&&savedRows[0])?savedRows[0]:null;
+      if(saved){ newInc.id=saved.id; newInc.at=saved.created_at||createdIso; }
+      INCIDENTS.unshift(newInc);
+      toast('✓ Incidencia creada');
+    }
+    if(alarmTime){
+      const alarmObj={hotel_id:activeHotelId,title:'[Inc] '+title,note:dept+' — '+(desc||'').slice(0,80),alarm_time:alarmTime,dept:dept,done:false,created_by:cu.id};
+      try{const sa=await SB.post('nh_alarms',alarmObj); const row=(Array.isArray(sa)&&sa[0])?sa[0]:null; ALARMS.unshift({...alarmObj,id:row?row.id:Date.now()});}catch(e){ console.warn('Alarm create error', e); }
+    }
+    closeModal('modal-incident');
+    buildNotifications();
+    updateBadges();
+    renderIncidents();
+    renderDashboard();
+  }catch(e){
+    console.error('saveIncident error', e);
+    alert('Error al guardar la incidencia: ' + (e?.message || JSON.stringify(e)));
   }
-  // Create alarm linked to incident if alarmTime is set
-  if(alarmTime){
-    const alarmObj={hotel_id:activeHotelId,title:'[Inc] '+title,note:dept+' — '+(desc||'').slice(0,80),alarm_time:alarmTime,dept:dept,done:false,created_by:cu.id};
-    try{const[sa]=await SB.post('nh_alarms',alarmObj);ALARMS.unshift({...alarmObj,id:sa?sa.id:Date.now()});}catch(e){}
-  }
-  closeModal('modal-incident');
-  buildNotifications();
-  updateBadges();
-  renderIncidents();
-  renderDashboard();
 }
 
 async function quickStatus(id, status) {
@@ -3008,15 +3028,15 @@ async function saveAlarm(){
 
 // ── AGENDA PRIVADA ───────────────────────────────────────────
 let agendaUserId = null;
-let agendaDate = new Date().toISOString().slice(0,10);
+let agendaDate = todayLocalISO();
 function agendaKeyFor(userId, dateStr){ return 'agenda:'+String(userId)+':'+String(dateStr||agendaDate); }
-function agendaDateObj(){ return new Date(agendaDate+'T12:00:00'); }
+function agendaDateObj(){ return new Date((agendaDate||todayLocalISO())+'T12:00:00'); }
 function agendaDateTitle(dateStr){
-  const d = new Date((dateStr||agendaDate)+'T12:00:00');
+  const d = new Date((dateStr||agendaDate||todayLocalISO())+'T12:00:00');
   return d.toLocaleDateString('es-ES',{weekday:'long', day:'numeric', month:'long', year:'numeric'});
 }
 function agendaDateSub(dateStr){
-  const d = new Date((dateStr||agendaDate)+'T12:00:00');
+  const d = new Date((dateStr||agendaDate||todayLocalISO())+'T12:00:00');
   const week = Math.ceil((((d - new Date(d.getFullYear(),0,1)) / 86400000) + new Date(d.getFullYear(),0,1).getDay()+1)/7);
   return 'Página diaria · Semana '+week;
 }
@@ -3031,10 +3051,10 @@ function renderAgenda(){
   const editor = agendaEditorEl();
   if(!tabs||!editor||!meta) return;
   if(isS){
-    const users = USERS.filter(u=>u.active!==false && u.role!=='SUPER_ADMIN');
-    if(!agendaUserId || !users.some(u=>String(u.id)===String(agendaUserId))) agendaUserId = users[0] ? users[0].id : cu.id;
-    tabs.innerHTML = users.map(u=>`<div class="chip${String(agendaUserId)===String(u.id)?' active':''}" onclick="selectAgendaUser(${u.id})">${u.name}</div>`).join('');
-    subtitle.textContent = 'Agenda diaria privada. Cada empleado solo ve la suya y tú puedes revisarlas todas.';
+    const users = [cu, ...USERS.filter(u=>u.active!==false && String(u.id)!==String(cu.id))];
+    if(!agendaUserId || !users.some(u=>String(u.id)===String(agendaUserId))) agendaUserId = cu.id;
+    tabs.innerHTML = users.map(u=>`<div class="chip${String(agendaUserId)===String(u.id)?' active':''}" onclick="selectAgendaUser(${u.id})">${String(u.id)===String(cu.id)?'Mi agenda':u.name}</div>`).join('');
+    subtitle.textContent = 'Agenda diaria privada. Cada empleado solo ve la suya y tú como Super Admin puedes revisar todas, incluida la tuya.';
   } else {
     agendaUserId = cu.id;
     tabs.innerHTML = '';
@@ -3045,29 +3065,34 @@ function renderAgenda(){
   editor.innerHTML = note && note.content ? note.content : '';
   titleEl.textContent = agendaDateTitle(agendaDate).replace(/^./,m=>m.toUpperCase());
   subEl.textContent = agendaDateSub(agendaDate);
-  const currentUser = USERS.find(u=>String(u.id)===String(agendaUserId)) || cu;
+  const currentUser = USERS.find(u=>String(u.id)===String(agendaUserId)) || (String(agendaUserId)===String(cu.id)?cu:cu);
   meta.textContent = note?.updatedAt ? `${currentUser.name} · Guardado: ${new Date(note.updatedAt).toLocaleString('es-ES')}` : `${currentUser.name} · ${agendaDate} · Sin guardar aún`;
 }
 function selectAgendaUser(userId){ agendaUserId = userId; renderAgenda(); }
-function agendaMoveDay(delta){ const d=agendaDateObj(); d.setDate(d.getDate()+delta); agendaDate=d.toISOString().slice(0,10); renderAgenda(); }
-function agendaJumpToday(){ agendaDate = new Date().toISOString().slice(0,10); renderAgenda(); }
+function agendaMoveDay(delta){ const d=agendaDateObj(); d.setDate(d.getDate()+delta); agendaDate=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; renderAgenda(); }
+function agendaJumpToday(){ agendaDate = todayLocalISO(); renderAgenda(); }
 function agendaFocus(){ const el=agendaEditorEl(); if(el) el.focus(); }
-function agendaCmd(cmd, value=null){ agendaFocus(); try{ document.execCommand(cmd,false,value); }catch(e){} }
+function agendaCmd(cmd, value=null){ agendaFocus(); try{ document.execCommand(cmd,false,value); }catch(e){ console.warn('agendaCmd',e); } }
 function agendaColor(color){ agendaCmd('styleWithCSS', true); agendaCmd('foreColor', color); }
 function agendaHighlight(color){ agendaCmd('styleWithCSS', true); agendaCmd('hiliteColor', color); }
 function agendaHeading(){ agendaFocus(); try{ document.execCommand('formatBlock', false, 'h2'); }catch(e){} agendaColor('#2e4a1e'); }
 async function saveAgenda(){
   const editor = agendaEditorEl();
-  if(!editor) return;
+  if(!editor){ alert('No se ha encontrado el editor de agenda.'); return; }
   const targetUserId = (cu.role==='SUPER_ADMIN' && agendaUserId) ? agendaUserId : cu.id;
   const key = agendaKeyFor(targetUserId, agendaDate);
   const html = editor.innerHTML || '';
-  await persistNote(key, html, cu.name);
-  NOTES[key] = Object.assign({}, NOTES[key]||{}, {content:html, raw:html, updatedAt:new Date().toISOString(), author:cu.name});
-  const meta = document.getElementById('agenda-meta');
-  const targetUser = USERS.find(u=>String(u.id)===String(targetUserId)) || cu;
-  if(meta) meta.textContent = `${targetUser.name} · Guardado: ${new Date().toLocaleString('es-ES')}`;
-  toast('✓ Agenda guardada');
+  try{
+    await persistNote(key, html, cu.name);
+    NOTES[key] = Object.assign({}, NOTES[key]||{}, {content:html, raw:html, updatedAt:new Date().toISOString(), author:cu.name});
+    const meta = document.getElementById('agenda-meta');
+    const targetUser = USERS.find(u=>String(u.id)===String(targetUserId)) || (String(targetUserId)===String(cu.id)?cu:cu);
+    if(meta) meta.textContent = `${targetUser.name} · Guardado: ${new Date().toLocaleString('es-ES')}`;
+    toast('✓ Agenda guardada');
+  }catch(e){
+    console.error('saveAgenda error', e);
+    alert('No se ha podido guardar la agenda: ' + (e?.message || JSON.stringify(e)));
+  }
 }
 async function doneAlarm(id){
   const a = ALARMS.find(x => x.id===id);
@@ -3404,16 +3429,17 @@ async function runDiagnostics(){
   // 4. WRITE test on nh_config (safe - just insert a test key and delete it)
   const t2 = Date.now();
   try {
-    const testKey = '_diag_test';
+    const testKey = '_diag_test_'+Date.now();
     const testVal = 'ok_'+Date.now();
-    const keyFilter = `?key=eq.${testKey}`;
+    const keyFilter = configHasHotelId ? `?key=eq.${testKey}&hotel_id=eq.${activeHotelId}` : `?key=eq.${testKey}`;
     const existing = await SB.get('nh_config', keyFilter);
     let writeOk = false;
     if(existing && existing.length > 0){
       await SB.patch('nh_config', keyFilter, {value: testVal});
       writeOk = true;
     } else {
-      const r = await SB.post('nh_config', {key:testKey, value:testVal});
+      const body = configHasHotelId ? {key:testKey, value:testVal, hotel_id:activeHotelId} : {key:testKey, value:testVal};
+      const r = await SB.post('nh_config', body);
       writeOk = Array.isArray(r) && r.length > 0;
     }
     const verify = await SB.get('nh_config', keyFilter);
@@ -4538,6 +4564,7 @@ function toast(msg){
 }
 
 function nowStr(){return new Date().toLocaleString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}).replace(',','');}
+function todayLocalISO(){ const d=new Date(); const y=d.getFullYear(); const m=String(d.getMonth()+1).padStart(2,'0'); const day=String(d.getDate()).padStart(2,'0'); return `${y}-${m}-${day}`; }
 
 function roleLabel(r){return{SUPER_ADMIN:'Super Admin',ADMIN:'Admin Dpto.',EMPLOYEE:'Empleado'}[r]||r;}
 function roleBadge(r){return{SUPER_ADMIN:'badge-gold',ADMIN:'badge-blue',EMPLOYEE:'badge-gray'}[r]||'badge-gray';}
